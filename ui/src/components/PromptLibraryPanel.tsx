@@ -6,13 +6,15 @@ import { SavePromptPopover } from "./SavePromptPopover";
 
 type PromptLibraryPanelProps = {
   variant?: "overlay" | "embedded";
+  forceOpen?: boolean;
+  onRequestClose?: () => void;
 };
 
 const LazyPromptImportDialog = lazy(() =>
   import("./PromptImportDialog").then((module) => ({ default: module.PromptImportDialog })),
 );
 
-export function PromptLibraryPanel({ variant = "overlay" }: PromptLibraryPanelProps) {
+export function PromptLibraryPanel({ variant = "overlay", forceOpen = false, onRequestClose }: PromptLibraryPanelProps) {
   const { t } = useI18n();
   const open = useAppStore((s) => s.promptLibraryOpen);
   const toggle = useAppStore((s) => s.togglePromptLibrary);
@@ -31,9 +33,12 @@ export function PromptLibraryPanel({ variant = "overlay" }: PromptLibraryPanelPr
   const [addOpen, setAddOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
 
+  const visible = forceOpen || open;
+  const closePanel = onRequestClose ?? toggle;
+
   useEffect(() => {
-    if (open) void load();
-  }, [open, load]);
+    if (visible) void load();
+  }, [visible, load]);
 
   const insertPrompt = useCallback(
     (prompt: { id: string; name: string; text: string }) => {
@@ -43,12 +48,12 @@ export function PromptLibraryPanel({ variant = "overlay" }: PromptLibraryPanelPr
         text: prompt.text,
       });
       showToast(t("promptLibrary.inserted"));
-      toggle();
+      closePanel();
     },
-    [insertPromptToComposer, showToast, t, toggle],
+    [closePanel, insertPromptToComposer, showToast, t],
   );
 
-  if (!open) return null;
+  if (!visible) return null;
 
   const filtered = library.prompts.filter((p) => {
     if (favoritesOnly && !p.isFavorite) return false;
@@ -82,7 +87,7 @@ export function PromptLibraryPanel({ variant = "overlay" }: PromptLibraryPanelPr
             >
               {t("promptLibrary.import")}
             </button>
-            <button onClick={toggle} aria-label={t("common.close")}>×</button>
+            <button onClick={closePanel} aria-label={t("common.close")}>×</button>
           </div>
           {addOpen && (
             <SavePromptPopover
@@ -151,7 +156,7 @@ export function PromptLibraryPanel({ variant = "overlay" }: PromptLibraryPanelPr
   return (
     <div className={`prompt-library-panel prompt-library-panel--${variant}`}>
       {variant === "overlay" ? (
-        <div className="prompt-library-panel__backdrop" onClick={toggle} />
+        <div className="prompt-library-panel__backdrop" onClick={closePanel} />
       ) : null}
       {content}
     </div>

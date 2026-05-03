@@ -623,6 +623,7 @@ function mapSessionToGraph(session: SessionFull): {
 type ToastEntry = { message: string; error: boolean; id: number; createdAt: number };
 type ToastState = ToastEntry | null;
 type ErrorCardEntry = { code: ImaErrorCode; fallbackMessage?: string; id: number; createdAt: number };
+export type ComposeSheetTab = "prompt" | "controls" | "library";
 type TrashPendingState = {
   filename: string;
   trashId: string;
@@ -715,7 +716,9 @@ type AppState = {
   rightPanelOpen: boolean;
   toggleRightPanel: () => void;
   composeSheetOpen: boolean;
-  openComposeSheet: () => void;
+  composeSheetTab: ComposeSheetTab;
+  openComposeSheet: (tab?: ComposeSheetTab) => void;
+  setComposeSheetTab: (tab: ComposeSheetTab) => void;
   closeComposeSheet: () => void;
   galleryOpen: boolean;
   openGallery: () => void;
@@ -1526,7 +1529,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       return { rightPanelOpen: next };
     }),
   composeSheetOpen: false,
-  openComposeSheet: () => set({ composeSheetOpen: true }),
+  composeSheetTab: "prompt",
+  openComposeSheet: (tab = "prompt") => set({ composeSheetOpen: true, composeSheetTab: tab }),
+  setComposeSheetTab: (tab) => set({ composeSheetTab: tab }),
   closeComposeSheet: () => set({ composeSheetOpen: false }),
   galleryOpen: false,
   openGallery: () =>

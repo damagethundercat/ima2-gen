@@ -7,11 +7,6 @@ import { ENABLE_CARD_NEWS_MODE, ENABLE_NODE_MODE } from "../lib/devMode";
 export function MobileAppBar() {
   const { t } = useI18n();
   const openComposeSheet = useAppStore((s) => s.openComposeSheet);
-  const toggleSettings = useAppStore((s) => s.toggleSettings);
-  const togglePromptLibrary = useAppStore((s) => s.togglePromptLibrary);
-  const promptLibraryOpen = useAppStore((s) => s.promptLibraryOpen);
-  const rightPanelOpen = useAppStore((s) => s.rightPanelOpen);
-  const toggleRightPanel = useAppStore((s) => s.toggleRightPanel);
   const settingsOpen = useAppStore((s) => s.settingsOpen);
   const uiModeRaw = useAppStore((s) => s.uiMode);
   const uiMode =
@@ -22,23 +17,21 @@ export function MobileAppBar() {
 
   if (!isMobile || settingsOpen || uiMode !== "classic") return null;
 
-  const openPromptLibrary = () => {
-    if (!promptLibraryOpen && !rightPanelOpen) toggleRightPanel();
-    togglePromptLibrary();
-  };
-
   return (
     <header className="mobile-app-bar" role="banner">
       <div className="mobile-app-bar__brand">
         <div className="logo-mark" aria-hidden="true" />
-        <span className="mobile-app-bar__title">ima2-gen</span>
+        <div className="mobile-app-bar__brand-copy">
+          <span className="mobile-app-bar__title">ima2-gen</span>
+          <span className="mobile-app-bar__mode">{t("appBar.modeImage")}</span>
+        </div>
       </div>
       <div className="mobile-app-bar__actions">
         <ImageModelSelect variant="sidebar" />
         <button
           type="button"
           className="mobile-app-bar__icon-button"
-          onClick={openPromptLibrary}
+          onClick={() => openComposeSheet("library")}
           aria-label={t("promptLibrary.title")}
           title={t("promptLibrary.title")}
         >
@@ -49,9 +42,9 @@ export function MobileAppBar() {
         <button
           type="button"
           className="mobile-app-bar__icon-button"
-          onClick={() => toggleSettings()}
-          aria-label={t("appBar.settings")}
-          title={t("appBar.settings")}
+          onClick={() => openComposeSheet("controls")}
+          aria-label={t("appBar.controls")}
+          title={t("appBar.controls")}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="3" />
@@ -60,11 +53,15 @@ export function MobileAppBar() {
         </button>
         <button
           type="button"
-          className="mobile-app-bar__compose"
-          onClick={openComposeSheet}
-          aria-label={t("appBar.compose")}
+          className="mobile-app-bar__generate"
+          onClick={() => openComposeSheet("prompt")}
+          aria-label={t("appBar.generateAria")}
         >
-          {t("appBar.compose")}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 3l1.8 5.4L19 10l-5.2 1.6L12 17l-1.8-5.4L5 10l5.2-1.6L12 3z" />
+            <path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15z" />
+          </svg>
+          <span>{t("appBar.generate")}</span>
         </button>
       </div>
     </header>

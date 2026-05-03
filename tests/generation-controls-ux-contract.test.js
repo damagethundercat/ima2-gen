@@ -12,16 +12,19 @@ function readSource(path) {
 describe("generation controls custom plus UX contract", () => {
   it("keeps the right panel as the generation control home", () => {
     const rightPanel = readSource("ui/src/components/RightPanel.tsx");
+    const controls = readSource("ui/src/components/GenerationControlsPanel.tsx");
 
-    assert.match(rightPanel, /import \{ SizePicker \} from "\.\/SizePicker"/);
-    assert.match(rightPanel, /import \{ CountPicker \} from "\.\/CountPicker"/);
+    assert.match(rightPanel, /import \{ GenerationControlsPanel \} from "\.\/GenerationControlsPanel"/);
     assert.match(rightPanel, /lazy\(\(\) =>\s*import\("\.\/PromptLibraryPanel"\)/);
-    assert.match(rightPanel, /<SizePicker \/>/);
-    assert.match(rightPanel, /<CountPicker \/>/);
+    assert.match(rightPanel, /<GenerationControlsPanel \/>/);
     assert.match(rightPanel, /promptLibraryOpen/);
     assert.match(rightPanel, /<LazyPromptLibraryPanel variant="embedded" \/>/);
     assert.match(rightPanel, /right-panel-tabs/);
     assert.doesNotMatch(rightPanel, /COUNT_ITEMS/);
+    assert.match(controls, /import \{ SizePicker \} from "\.\/SizePicker"/);
+    assert.match(controls, /import \{ CountPicker \} from "\.\/CountPicker"/);
+    assert.match(controls, /<SizePicker \/>/);
+    assert.match(controls, /<CountPicker \/>/);
   });
 
   it("preserves the existing size preset grid and visible auto option", () => {

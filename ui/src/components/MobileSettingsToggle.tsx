@@ -27,8 +27,9 @@ function SettingsSlidersIcon() {
 }
 
 export function MobileSettingsToggle() {
-  const open = useAppStore((s) => s.rightPanelOpen);
-  const toggle = useAppStore((s) => s.toggleRightPanel);
+  const sheetOpen = useAppStore((s) => s.composeSheetOpen);
+  const sheetTab = useAppStore((s) => s.composeSheetTab);
+  const openComposeSheet = useAppStore((s) => s.openComposeSheet);
   const settingsOpen = useAppStore((s) => s.settingsOpen);
   const uiMode = useAppStore((s) => s.uiMode);
   const { t } = useI18n();
@@ -36,17 +37,18 @@ export function MobileSettingsToggle() {
 
   if (!isMobile || settingsOpen || uiMode === "card-news") return null;
 
-  const label = open ? t("panel.closeSettings") : t("panel.openSettings");
+  const open = sheetOpen && sheetTab === "controls";
+  const label = open ? t("sheet.controlsOpen") : t("sheet.controlsOpen");
 
   return (
     <button
       type="button"
       className="mobile-settings-toggle"
       aria-expanded={open}
-      aria-controls="right-panel-body"
+      aria-controls="mobile-generate-sheet"
       aria-label={label}
       title={label}
-      onClick={toggle}
+      onClick={() => openComposeSheet("controls")}
     >
       <SettingsSlidersIcon />
     </button>

@@ -7,6 +7,23 @@
     "saving": "저장 중...",
     "loading": "불러오는 중..."
   },
+  "appBar": {
+    "modeImage": "이미지",
+    "settings": "설정",
+    "controls": "생성 옵션",
+    "generate": "생성",
+    "generateAria": "이미지 생성을 위한 프롬프트 시트 열기"
+  },
+  "sheet": {
+    "close": "프롬프트 시트 닫기",
+    "generate": "이미지 생성",
+    "controlsOpen": "생성 옵션 열기",
+    "tabs": {
+      "prompt": "프롬프트",
+      "controls": "옵션",
+      "library": "라이브러리"
+    }
+  },
   "toast": {
     "localImportSuccess": "이미지가 갤러리에 추가됐어요",
     "localImportFailed": "이미지 가져오기 실패",

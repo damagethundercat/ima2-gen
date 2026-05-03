@@ -7,6 +7,23 @@
     "saving": "Saving...",
     "loading": "Loading..."
   },
+  "appBar": {
+    "modeImage": "Image",
+    "settings": "Settings",
+    "controls": "Generation controls",
+    "generate": "Generate",
+    "generateAria": "Open prompt sheet to generate an image"
+  },
+  "sheet": {
+    "close": "Close prompt sheet",
+    "generate": "Generate image",
+    "controlsOpen": "Open generation controls",
+    "tabs": {
+      "prompt": "Prompt",
+      "controls": "Controls",
+      "library": "Library"
+    }
+  },
   "toast": {
     "localImportSuccess": "Image added to gallery",
     "localImportFailed": "Failed to import image",

@@ -12,7 +12,7 @@ function readSource(path) {
 describe("multimode frontend UX contract", () => {
   it("reuses the existing count picker row while binding multimode to max images", () => {
     const countPicker = readSource("ui/src/components/CountPicker.tsx");
-    const rightPanel = readSource("ui/src/components/RightPanel.tsx");
+    const controls = readSource("ui/src/components/GenerationControlsPanel.tsx");
 
     assert.match(countPicker, /const QUICK_COUNTS = \[1, 2, 4\] as const/);
     assert.match(countPicker, /const uiMode = useAppStore\(\(s\) => s\.uiMode\)/);
@@ -21,10 +21,10 @@ describe("multimode frontend UX contract", () => {
     assert.match(countPicker, /const multimode = uiMode === "classic" && multimodeEnabled/);
     assert.match(countPicker, /const value = multimode \? multimodeMaxImages : count/);
     assert.match(countPicker, /Math\.min\(8, Math\.max\(1, Math\.trunc\(value \|\| 1\)\)\)/);
-    assert.match(rightPanel, /const showMultimodeControls = uiMode === "classic"/);
-    assert.match(rightPanel, /className=\{`multimode-toggle__button/);
-    assert.doesNotMatch(rightPanel, /disabled=\{activeGenerations > 0\}/);
-    assert.doesNotMatch(rightPanel, /toggleDisabledGenerating/);
+    assert.match(controls, /const showMultimodeControls = uiMode === "classic"/);
+    assert.match(controls, /className=\{`multimode-toggle__button/);
+    assert.doesNotMatch(controls, /disabled=\{activeGenerations > 0\}/);
+    assert.doesNotMatch(controls, /toggleDisabledGenerating/);
   });
 
   it("branches generate into a separate multimode streaming flow", () => {
