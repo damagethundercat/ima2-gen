@@ -22,6 +22,8 @@ describe("gallery viewer focusless navigation contract", () => {
     assert.match(hook, /ArrowRight:\s*"next"/);
     assert.match(hook, /Home:\s*"first"/);
     assert.match(hook, /End:\s*"last"/);
+    assert.match(hook, /PageUp:\s*"pagePrevious"/);
+    assert.match(hook, /PageDown:\s*"pageNext"/);
     assert.doesNotMatch(hook, /Delete:\s*/);
     assert.doesNotMatch(hook, /Shift\+Delete/);
     assert.match(hook, /uiMode !== "classic"/);

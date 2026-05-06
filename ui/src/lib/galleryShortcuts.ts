@@ -1,6 +1,14 @@
 import type { GenerateItem } from "../types";
 
-export type GalleryShortcutAction = "previous" | "next" | "first" | "last";
+export type GalleryShortcutAction =
+  | "previous"
+  | "next"
+  | "first"
+  | "last"
+  | "pagePrevious"
+  | "pageNext";
+
+export const GALLERY_PAGE_STEP = 10;
 
 function itemMatches(item: GenerateItem, currentImage: GenerateItem | null): boolean {
   if (!currentImage) return false;
@@ -57,6 +65,11 @@ export function getShortcutTarget(
 
   const currentIndex = getHistoryIndex(history, currentImage);
   if (currentIndex < 0) return null;
+  if (action === "pagePrevious" || action === "pageNext") {
+    const delta = action === "pagePrevious" ? -GALLERY_PAGE_STEP : GALLERY_PAGE_STEP;
+    const nextIndex = Math.max(0, Math.min(visibleHistory.length - 1, currentIndex + delta));
+    return visibleHistory[nextIndex] ?? null;
+  }
   const nextIndex = action === "previous" ? currentIndex - 1 : currentIndex + 1;
   return visibleHistory[nextIndex] ?? null;
 }

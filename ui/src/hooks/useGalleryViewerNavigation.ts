@@ -8,6 +8,8 @@ const KEY_TO_ACTION: Record<string, GalleryShortcutAction | undefined> = {
   ArrowRight: "next",
   Home: "first",
   End: "last",
+  PageUp: "pagePrevious",
+  PageDown: "pageNext",
 };
 
 export function useGalleryViewerNavigation() {

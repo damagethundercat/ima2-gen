@@ -22,6 +22,9 @@ describe("gallery shortcut visible-domain contract", () => {
     assert.match(shortcuts, /const visibleHistory = getVisibleGalleryItems\(history\)/);
     assert.match(shortcuts, /if \(action === "first"\) return visibleHistory\[0\] \?\? null/);
     assert.match(shortcuts, /if \(action === "last"\) return visibleHistory\[visibleHistory\.length - 1\] \?\? null/);
+    assert.match(shortcuts, /action === "pagePrevious" \|\| action === "pageNext"/);
+    assert.match(shortcuts, /GALLERY_PAGE_STEP/);
+    assert.match(shortcuts, /Math\.max\(0, Math\.min\(visibleHistory\.length - 1, currentIndex \+ delta\)\)/);
     assert.match(shortcuts, /return visibleHistory\[nextIndex\] \?\? null/);
     assert.doesNotMatch(shortcuts, /return history\[nextIndex\] \?\? null/);
   });

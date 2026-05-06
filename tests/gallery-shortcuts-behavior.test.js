@@ -33,6 +33,17 @@ async function importGalleryShortcuts() {
 const sourceA = { filename: "a.png", image: "a" };
 const sourceB = { filename: "b.png", image: "b" };
 const sourceC = { filename: "c.png", image: "c" };
+const sourceD = { filename: "d.png", image: "d" };
+const sourceE = { filename: "e.png", image: "e" };
+const sourceF = { filename: "f.png", image: "f" };
+const sourceG = { filename: "g.png", image: "g" };
+const sourceH = { filename: "h.png", image: "h" };
+const sourceI = { filename: "i.png", image: "i" };
+const sourceJ = { filename: "j.png", image: "j" };
+const sourceK = { filename: "k.png", image: "k" };
+const sourceL = { filename: "l.png", image: "l" };
+const sourceM = { filename: "m.png", image: "m" };
+const sourceN = { filename: "n.png", image: "n" };
 const canvasB = {
   filename: "b.canvas.png",
   image: "b-canvas",
@@ -41,6 +52,23 @@ const canvasB = {
   canvasEditableFilename: "b.png",
 };
 const history = [sourceA, canvasB, sourceB, sourceC];
+const pageHistory = [
+  sourceA,
+  sourceB,
+  { filename: "hidden.canvas.png", image: "hidden", canvasVersion: true },
+  sourceC,
+  sourceD,
+  sourceE,
+  sourceF,
+  sourceG,
+  sourceH,
+  sourceI,
+  sourceJ,
+  sourceK,
+  sourceL,
+  sourceM,
+  sourceN,
+];
 
 describe("gallery shortcut behavior", () => {
   it("skips hidden canvas versions for previous, next, first, and last", async () => {
@@ -73,6 +101,38 @@ describe("gallery shortcut behavior", () => {
       assert.equal(module.getNeighborAfterRemoval(history, "a.png"), sourceB);
       assert.equal(module.getNeighborAfterRemoval(history, "b.png"), sourceC);
       assert.equal(module.getNeighborAfterRemoval(history, "c.png"), sourceB);
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("moves PageDown and PageUp by a fixed visible-gallery step", async () => {
+    const { module, cleanup } = await importGalleryShortcuts();
+    try {
+      assert.equal(module.GALLERY_PAGE_STEP, 10);
+      assert.equal(module.getShortcutTarget(pageHistory, sourceA, "pageNext"), sourceK);
+      assert.equal(module.getShortcutTarget(pageHistory, sourceK, "pagePrevious"), sourceA);
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("clamps PageDown and PageUp at visible gallery edges", async () => {
+    const { module, cleanup } = await importGalleryShortcuts();
+    try {
+      assert.equal(module.getShortcutTarget(pageHistory, sourceH, "pageNext"), sourceN);
+      assert.equal(module.getShortcutTarget(pageHistory, sourceC, "pagePrevious"), sourceA);
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("keeps PageDown and PageUp out of hidden canvasVersion rows", async () => {
+    const { module, cleanup } = await importGalleryShortcuts();
+    try {
+      assert.equal(module.getShortcutTarget(pageHistory, sourceA, "pageNext"), sourceK);
+      assert.notEqual(module.getShortcutTarget(pageHistory, sourceA, "pageNext")?.filename, "hidden.canvas.png");
+      assert.equal(module.getShortcutTarget(pageHistory, sourceK, "pagePrevious"), sourceA);
     } finally {
       cleanup();
     }
