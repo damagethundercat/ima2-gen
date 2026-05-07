@@ -4,6 +4,7 @@ import { streamSse } from "../lib/sse.js";
 import { dataUriToFile, defaultOutName } from "../lib/files.js";
 import { out, die, color, json, exitCodeForError } from "../lib/output.js";
 import { config } from "../../config.js";
+import { createCliRequestId, recoverGeneratedOutputs, formatRecoveryHint } from "../lib/recover-output.js";
 
 const SPEC = {
   flags: {
@@ -66,6 +67,11 @@ export default async function multimodeCmd(argv: string[]) {
   catch (e: any) { die(exitCodeForError(e), e.message); throw e; }
 
   const maxImages = Math.max(1, Math.min(8, parseInt(String(args["max-images"])) || 4));
+  const outDir = args["out-dir"] ? String(args["out-dir"]) : null;
+  const explicitOut = args.out ? String(args.out) : null;
+  const requestId = createCliRequestId("req_cli_multimode");
+  const timeoutMs = (parseInt(String(args.timeout)) || 600) * 1000;
+
   const body: any = {
     prompt,
     quality: args.quality,
@@ -73,6 +79,7 @@ export default async function multimodeCmd(argv: string[]) {
     maxImages,
     moderation: args.moderation,
     sessionId: args.session,
+    requestId,
   };
   if (args.model) body.model = args.model;
   if (args["reasoning-effort"]) body.reasoningEffort = args["reasoning-effort"];
@@ -80,6 +87,11 @@ export default async function multimodeCmd(argv: string[]) {
   else if (args["web-search"]) body.webSearchEnabled = true;
 
   const ac = new AbortController();
+  let timedOut = false;
+  const timeoutTimer = setTimeout(() => {
+    timedOut = true;
+    ac.abort();
+  }, timeoutMs);
   const onSig = () => { ac.abort(); process.exit(130); };
   process.once("SIGINT", onSig);
   process.once("SIGTERM", onSig);
@@ -88,7 +100,7 @@ export default async function multimodeCmd(argv: string[]) {
   const images: any[] = [];
   let doneInfo: any = null;
   try {
-    for await (const ev of streamSse(url, { body, signal: ac.signal })) {
+    for await (const ev of streamSse(url, { body, signal: ac.signal, headers: { "X-Request-Id": requestId } })) {
       switch (ev.event) {
         case "phase":
           if (!args.json) out(color.dim(`[phase] ${ev.data.phase} (max ${ev.data.maxImages ?? maxImages})`));
@@ -111,13 +123,34 @@ export default async function multimodeCmd(argv: string[]) {
       }
     }
   } catch (e: any) {
-    if (e.name === "AbortError") return;
+    const isTimeout = e.name === "TimeoutError" || (e.name === "AbortError" && timedOut);
+    if (e.name === "AbortError" && !timedOut) return;
+    if (isTimeout && (explicitOut || outDir)) {
+      const result = await recoverGeneratedOutputs(server.base, requestId, {
+        explicitOut,
+        outDir,
+        expectedCount: maxImages,
+        json: Boolean(args.json),
+      });
+      if (result.recovered) {
+        if (args.json) {
+          json({ ok: true, requestId, recovered: true, paths: result.paths });
+        } else {
+          out(formatRecoveryHint(result));
+          for (const p of result.paths) out(color.green("✓ ") + p + color.dim(" (recovered)"));
+        }
+        return;
+      }
+      if (!args.json) out(formatRecoveryHint(result));
+    }
     die(exitCodeForError(e), `${e.message}${e.code ? ` (${e.code})` : ""}`);
+  } finally {
+    clearTimeout(timeoutTimer);
+    process.off("SIGINT", onSig);
+    process.off("SIGTERM", onSig);
   }
 
   // Save images
-  const outDir = args["out-dir"] ? String(args["out-dir"]) : null;
-  const explicitOut = args.out ? String(args.out) : null;
   if (explicitOut && images.length > 1) {
     if (!args.json) out(color.yellow(`(received ${images.length} images, --out only saves first)`));
   }

@@ -3,6 +3,7 @@ import { resolveServer, request, normalizeGenerate } from "../lib/client.js";
 import { fileToDataUri, dataUriToFile, defaultOutName, readStdin } from "../lib/files.js";
 import { out, die, dieWithError, color, json } from "../lib/output.js";
 import { config } from "../../config.js";
+import { createCliRequestId, recoverGeneratedOutputs, formatRecoveryHint } from "../lib/recover-output.js";
 
 import { errInfo } from "../../lib/errInfo.js";
 const VALID_MODES = new Set(["auto", "direct"]);
@@ -106,6 +107,10 @@ export default async function genCmd(argv: string[]) {
 
   const references = await Promise.all(refs.map((p: string) => fileToDataUri(p)));
 
+  const outDir = args["out-dir"] ? String(args["out-dir"]) : null;
+  const explicitOut = args.out ? String(args.out) : null;
+  const requestId = createCliRequestId("req_cli_gen");
+
   const body: any = {
     prompt,
     quality: args.quality,
@@ -116,6 +121,7 @@ export default async function genCmd(argv: string[]) {
     mode: args.mode,
     moderation: args.moderation,
     sessionId: args.session,
+    requestId,
   };
   if (args["reasoning-effort"]) body.reasoningEffort = args["reasoning-effort"];
   if (args["no-web-search"]) body.webSearchEnabled = false;
@@ -123,10 +129,34 @@ export default async function genCmd(argv: string[]) {
 
   let resp;
   try {
-    resp = await request(server.base, "/api/generate", { method: "POST", body, timeoutMs });
+    resp = await request(server.base, "/api/generate", {
+      method: "POST",
+      body,
+      timeoutMs,
+      headers: { "X-Request-Id": requestId },
+    });
   } catch (e) {
     const err = errInfo(e);
-    if (args.json) json({ ok: false, error: err.message, code: err.code, status: err.status });
+    const isTimeout = err.name === "TimeoutError" || err.name === "AbortError";
+    if (isTimeout && (explicitOut || outDir)) {
+      const result = await recoverGeneratedOutputs(server.base, requestId, {
+        explicitOut,
+        outDir,
+        expectedCount: n,
+        json: Boolean(args.json),
+      });
+      if (result.recovered) {
+        if (args.json) {
+          json({ ok: true, requestId, recovered: true, images: result.paths.map((p) => ({ path: p })) });
+        } else {
+          out(formatRecoveryHint(result));
+          for (const p of result.paths) out(color.green("✓ ") + p + color.dim(" (recovered)"));
+        }
+        return;
+      }
+      if (!args.json) out(formatRecoveryHint(result));
+    }
+    if (args.json) json({ ok: false, error: err.message, code: err.code, status: err.status, requestId });
     dieWithError(e);
   }
 
@@ -144,8 +174,6 @@ export default async function genCmd(argv: string[]) {
   }
 
   // Save path
-  const outDir = args["out-dir"] ? String(args["out-dir"]) : null;
-  const explicitOut = args.out ? String(args.out) : null;
   if (explicitOut && norm.images.length > 1) {
     die(2, "--out only supports a single image; use --out-dir for n>1");
   }

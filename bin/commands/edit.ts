@@ -3,6 +3,7 @@ import { resolveServer, request } from "../lib/client.js";
 import { fileToDataUri, dataUriToFile, defaultOutName } from "../lib/files.js";
 import { out, die, dieWithError, color, json } from "../lib/output.js";
 import { config } from "../../config.js";
+import { createCliRequestId, recoverGeneratedOutputs, formatRecoveryHint } from "../lib/recover-output.js";
 
 import { errInfo } from "../../lib/errInfo.js";
 const VALID_MODES = new Set(["auto", "direct"]);
@@ -79,6 +80,9 @@ export default async function editCmd(argv: string[]) {
   const imageB64 = imageDataUri.split(",")[1];
 
   const timeoutMs = (parseInt(String(args.timeout)) || 180) * 1000;
+  const explicitOut = args.out ? String(args.out) : null;
+  const requestId = createCliRequestId("req_cli_edit");
+
   let resp;
   try {
     const editBody: any = {
@@ -90,6 +94,7 @@ export default async function editCmd(argv: string[]) {
       mode: args.mode,
       moderation: args.moderation,
       sessionId: args.session,
+      requestId,
     };
     if (args["reasoning-effort"]) editBody.reasoningEffort = args["reasoning-effort"];
     if (args["no-web-search"]) editBody.webSearchEnabled = false;
@@ -98,16 +103,35 @@ export default async function editCmd(argv: string[]) {
       method: "POST",
       body: editBody,
       timeoutMs,
+      headers: { "X-Request-Id": requestId },
     });
   } catch (e) {
     const err = errInfo(e);
-    if (args.json) json({ ok: false, error: err.message, code: err.code });
+    const isTimeout = err.name === "TimeoutError" || err.name === "AbortError";
+    if (isTimeout && explicitOut) {
+      const result = await recoverGeneratedOutputs(server.base, requestId, {
+        explicitOut,
+        expectedCount: 1,
+        json: Boolean(args.json),
+      });
+      if (result.recovered) {
+        if (args.json) {
+          json({ ok: true, requestId, recovered: true, path: result.paths[0] });
+        } else {
+          out(formatRecoveryHint(result));
+          out(color.green("✓ ") + result.paths[0] + color.dim(" (recovered)"));
+        }
+        return;
+      }
+      if (!args.json) out(formatRecoveryHint(result));
+    }
+    if (args.json) json({ ok: false, error: err.message, code: err.code, requestId });
     dieWithError(e);
   }
 
   const image = resp.image;
   if (!image) die(1, "server returned no image");
-  const target = args.out || `${config.storage.generatedDir}/${defaultOutName(0, 1)}`;
+  const target = explicitOut || `${config.storage.generatedDir}/${defaultOutName(0, 1)}`;
   await dataUriToFile(image, String(target));
 
   if (args.json) {

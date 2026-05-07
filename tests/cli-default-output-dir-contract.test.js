@@ -13,6 +13,7 @@ test("CLI generation defaults save into configured generatedDir, not cwd", () =>
 
 test("CLI edit defaults save into configured generatedDir, not cwd", () => {
   assert.match(edit, /import \{ config \} from "\.\.\/\.\.\/config\.js"/);
-  assert.match(edit, /const target = args\.out \|\| `\$\{config\.storage\.generatedDir\}\/\$\{defaultOutName\(0,\s*1\)\}`/);
+  assert.match(edit, /const explicitOut = args\.out \? String\(args\.out\) : null/);
+  assert.match(edit, /const target = explicitOut \|\| `\$\{config\.storage\.generatedDir\}\/\$\{defaultOutName\(0,\s*1\)\}`/);
   assert.doesNotMatch(edit, /const target = args\.out \|\| defaultOutName\(0,\s*1\)/);
 });
