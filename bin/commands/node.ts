@@ -6,7 +6,7 @@ import { out, die, color, json, exitCodeForError } from "../lib/output.js";
 import { config } from "../../config.js";
 
 const HELP = `
-  ima2 node <subcommand> [options]
+  ima2x node <subcommand> [options]
 
   Subcommands:
     generate <prompt...> [--parent <nodeId>] [--ref <file>...] [--provider <auto|oauth|api>] [--no-stream] [...gen-style flags]

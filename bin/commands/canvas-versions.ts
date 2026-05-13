@@ -4,7 +4,7 @@ import { resolveServer, request } from "../lib/client.js";
 import { out, die, color, json, exitCodeForError } from "../lib/output.js";
 
 const HELP = `
-  ima2 canvas-versions <subcommand> [options]
+  ima2x canvas-versions <subcommand> [options]
 
   Subcommands:
     save <imagefile> [--source <filename>] [--prompt <text>]

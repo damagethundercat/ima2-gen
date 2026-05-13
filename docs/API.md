@@ -1,6 +1,6 @@
 # API Reference
 
-This document lists the local HTTP API exposed by `ima2 serve`.
+This document lists the local HTTP API exposed by `ima2x serve`.
 
 Base URL:
 
@@ -48,7 +48,7 @@ Image generation supports both OAuth and API-key providers.
     "state": "not_found",
     "messageKind": "apology",
     "recoveryDocsPath": "docs/RECOVER_OLD_IMAGES.md",
-    "doctorCommand": "ima2 doctor",
+    "doctorCommand": "ima2x doctor",
     "overrides": {
       "generatedDir": false,
       "configDir": false
@@ -66,7 +66,7 @@ Storage `state` values:
 | `not_found` | Current gallery is empty and no legacy folder was found |
 | `unknown` | Storage status inspection failed or was incomplete |
 
-`POST /api/storage/open-generated-dir` opens the generated image folder on the machine running `ima2 serve`. If the browser is connected to a remote server, VM, container, WSL instance, or another computer on the network, this action targets that server machine, not necessarily the browser device.
+`POST /api/storage/open-generated-dir` opens the generated image folder on the machine running `ima2x serve`. If the browser is connected to a remote server, VM, container, WSL instance, or another computer on the network, this action targets that server machine, not necessarily the browser device.
 
 ## In-Flight Jobs
 
@@ -230,36 +230,36 @@ As of 0.09.x, every server route under `/api/*` has a CLI wrapper. Use this tabl
 
 | Endpoint | CLI |
 |---|---|
-| `POST /api/generate` | `ima2 gen` |
-| `POST /api/edit` | `ima2 edit` |
-| `POST /api/generate/multi` (SSE) | `ima2 multimode` |
-| `POST /api/node/generate` (SSE) / `GET /api/node/:id` | `ima2 node generate` / `ima2 node show` |
-| `GET /api/history` | `ima2 ls` |
-| `DELETE /api/history/:name` / `…/permanent` | `ima2 history rm [--permanent]` |
-| `POST /api/history/restore` | `ima2 history restore --trash-id` |
-| `POST /api/history/favorite` | `ima2 history favorite` |
-| `POST /api/history/import-local` | `ima2 history import` |
-| `POST /api/metadata/read` | `ima2 metadata` / `ima2 show --metadata` |
-| `GET/POST/PUT/DELETE /api/sessions[/…]` | `ima2 session ls/show/create/rm/rename` |
-| `GET/PUT /api/sessions/:id/graph` | `ima2 session graph load/save` |
-| `GET/PUT /api/sessions/:id/style-sheet[/…]` | `ima2 session style-sheet …` |
-| `GET/PUT/DELETE /api/annotations/:name` | `ima2 annotate get/set/rm` |
-| `POST /api/canvas-versions` / `PUT /api/canvas-versions/:name` | `ima2 canvas-versions save/update` |
-| `GET/POST/PUT/DELETE /api/prompts[/…]` | `ima2 prompt …` |
-| `GET/POST/PUT/DELETE /api/prompt-folders[/…]` | `ima2 prompt folder …` |
-| `…/api/prompt-import/…` | `ima2 prompt import sources/refresh/curated/discovery/folder` |
-| `…/api/cardnews/…` (gated on `features.cardNews`) | `ima2 cardnews …` |
-| `POST /api/comfy/export-image` | `ima2 comfy export` |
-| `GET /api/inflight` / `DELETE /api/inflight/:id` | `ima2 inflight ls` (alias `ps`) / `ima2 inflight rm` (alias `cancel`) |
-| `GET /api/storage/status` / `POST /api/storage/open-generated-dir` | `ima2 storage status` / `ima2 storage open` |
-| `GET /api/billing` / `GET /api/providers` / `GET /api/oauth/status` | `ima2 billing` / `ima2 providers` / `ima2 oauth status` |
-| `GET /api/health` | `ima2 ping` |
+| `POST /api/generate` | `ima2x gen` |
+| `POST /api/edit` | `ima2x edit` |
+| `POST /api/generate/multi` (SSE) | `ima2x multimode` |
+| `POST /api/node/generate` (SSE) / `GET /api/node/:id` | `ima2x node generate` / `ima2x node show` |
+| `GET /api/history` | `ima2x ls` |
+| `DELETE /api/history/:name` / `…/permanent` | `ima2x history rm [--permanent]` |
+| `POST /api/history/restore` | `ima2x history restore --trash-id` |
+| `POST /api/history/favorite` | `ima2x history favorite` |
+| `POST /api/history/import-local` | `ima2x history import` |
+| `POST /api/metadata/read` | `ima2x metadata` / `ima2x show --metadata` |
+| `GET/POST/PUT/DELETE /api/sessions[/…]` | `ima2x session ls/show/create/rm/rename` |
+| `GET/PUT /api/sessions/:id/graph` | `ima2x session graph load/save` |
+| `GET/PUT /api/sessions/:id/style-sheet[/…]` | `ima2x session style-sheet …` |
+| `GET/PUT/DELETE /api/annotations/:name` | `ima2x annotate get/set/rm` |
+| `POST /api/canvas-versions` / `PUT /api/canvas-versions/:name` | `ima2x canvas-versions save/update` |
+| `GET/POST/PUT/DELETE /api/prompts[/…]` | `ima2x prompt …` |
+| `GET/POST/PUT/DELETE /api/prompt-folders[/…]` | `ima2x prompt folder …` |
+| `…/api/prompt-import/…` | `ima2x prompt import sources/refresh/curated/discovery/folder` |
+| `…/api/cardnews/…` (gated on `features.cardNews`) | `ima2x cardnews …` |
+| `POST /api/comfy/export-image` | `ima2x comfy export` |
+| `GET /api/inflight` / `DELETE /api/inflight/:id` | `ima2x inflight ls` (alias `ps`) / `ima2x inflight rm` (alias `cancel`) |
+| `GET /api/storage/status` / `POST /api/storage/open-generated-dir` | `ima2x storage status` / `ima2x storage open` |
+| `GET /api/billing` / `GET /api/providers` / `GET /api/oauth/status` | `ima2x billing` / `ima2x providers` / `ima2x oauth status` |
+| `GET /api/health` | `ima2x ping` |
 
 Notes:
-- `ima2 history favorite` and `ima2 annotate …` send `X-Ima2-Browser-Id: cli-<sha1prefix>` derived from the config dir, so CLI activity does not collide with browser sessions.
-- `ima2 session graph save` performs a GET-then-PUT with `If-Match: "<version>"` to guard against `GRAPH_VERSION_CONFLICT`.
-- `ima2 history import` and `ima2 canvas-versions save/update` send raw bytes with `Content-Type: image/<png|jpeg|webp>`; the SSE endpoints (`multimode`, `node generate`) use `Accept: text/event-stream`.
-- `ima2 cardnews …` checks `runtimeConfig.features.cardNews` before calling the gated endpoints; when disabled the CLI exits 2 with a clear message instead of producing a 404.
+- `ima2x history favorite` and `ima2x annotate …` send `X-Ima2-Browser-Id: cli-<sha1prefix>` derived from the config dir, so CLI activity does not collide with browser sessions.
+- `ima2x session graph save` performs a GET-then-PUT with `If-Match: "<version>"` to guard against `GRAPH_VERSION_CONFLICT`.
+- `ima2x history import` and `ima2x canvas-versions save/update` send raw bytes with `Content-Type: image/<png|jpeg|webp>`; the SSE endpoints (`multimode`, `node generate`) use `Accept: text/event-stream`.
+- `ima2x cardnews …` checks `runtimeConfig.features.cardNews` before calling the gated endpoints; when disabled the CLI exits 2 with a clear message instead of producing a 404.
 
 ## CLI Discovery
 
@@ -269,7 +269,7 @@ The server writes an advertisement file at:
 ~/.ima2/server.json
 ```
 
-CLI commands such as `ima2 ping`, `ima2 gen`, and `ima2 ls` use this file unless `--server` or `IMA2_SERVER` is provided.
+CLI commands such as `ima2x ping`, `ima2x gen`, and `ima2x ls` use this file unless `--server` or `IMA2_SERVER` is provided.
 
 Current shape:
 

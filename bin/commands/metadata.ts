@@ -12,7 +12,7 @@ const SPEC = {
 };
 
 const HELP = `
-  ima2 metadata <imagefile> [--json]
+  ima2x metadata <imagefile> [--json]
 
   Read embedded metadata from any local image file.
   POSTs { dataUrl } to /api/metadata/read.

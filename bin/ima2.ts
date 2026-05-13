@@ -15,6 +15,7 @@ import { errInfo } from "../lib/errInfo.js";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
 const requireFromRoot = createRequire(join(ROOT, "package.json"));
+const CLI_NAME = "ima2x";
 // Config lives under runtimeConfig.storage.configDir (honors IMA2_CONFIG_DIR).
 // Legacy installs that stored config at <packageRoot>/.ima2/config.json will be
 // migrated on first write.
@@ -23,7 +24,7 @@ const CONFIG_FILE = runtimeConfig.storage.configFile;
 const LEGACY_CONFIG_FILE = join(ROOT, ".ima2", "config.json");
 
 // Load package.json for version
-let pkg = { version: "?", name: "ima2-gen" };
+let pkg = { version: "?", name: "@damagethundercat/ima2-gen" };
 try {
   pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf-8"));
 } catch {}
@@ -113,7 +114,7 @@ async function setup() {
       try {
         execSync(`${resolveBin("npx")} @openai/codex login`, { stdio: "inherit" });
       } catch {
-        console.log("\n  Login failed or cancelled. You can retry with 'ima2 serve'.\n");
+        console.log(`\n  Login failed or cancelled. You can retry with '${CLI_NAME} serve'.\n`);
         rl.close();
         process.exit(1);
       }
@@ -135,7 +136,7 @@ async function serve(serveArgs: string[] = []) {
     await maybePromptGithubStar();
   } catch (e) {
     const err = errInfo(e);
-    console.error(`[ima2] Star prompt skipped: ${err.message || err.raw}`);
+    console.error(`[${CLI_NAME}] Star prompt skipped: ${err.message || err.raw}`);
   }
 
   let config = loadConfig();
@@ -158,7 +159,7 @@ async function serve(serveArgs: string[] = []) {
       }
     } else {
       console.log("\n  ui/dist not found and ui/ source is missing.");
-      console.log("  This installation appears broken. Reinstall: npm i -g ima2-gen\n");
+      console.log("  This installation appears broken. Reinstall: npm i -g @damagethundercat/ima2-gen\n");
       process.exit(1);
     }
   }
@@ -202,7 +203,7 @@ async function showStatus() {
     console.log("");
   } else {
     console.log("  Status: not configured");
-    console.log("  Run 'ima2 setup' to configure.\n");
+    console.log(`  Run '${CLI_NAME} setup' to configure.\n`);
   }
 
   // Check OAuth auth files + codex CLI probe
@@ -275,7 +276,7 @@ async function doctor() {
     console.log(`  ✓ Configured: ${config.provider}`);
     ok++;
   } else {
-    console.log("  ⚠ Not configured — run 'ima2 setup'");
+    console.log(`  ⚠ Not configured — run '${CLI_NAME} setup'`);
   }
 
   // Port availability (simple check)
@@ -313,7 +314,7 @@ function showHelp() {
   console.log(`
   ${pkg.name} v${pkg.version} — GPT Image 2 Generator
 
-  Usage: ima2 <command> [options]
+  Usage: ${CLI_NAME} <command> [options]
 
   Server commands:
     serve [--dev]  Start the image generation server
@@ -323,29 +324,29 @@ function showHelp() {
     open           Open web UI in browser
     reset          Reset configuration
 
-  Client commands (require a running 'ima2 serve'):
-    gen <prompt>   Generate image(s) from prompt  (ima2 gen --help)
-    edit <file>    Edit an existing image         (ima2 edit --help)
-    ls             List recent history            (ima2 ls --help)
-    show <name>    Show one history item          (ima2 show --help)
-    session <sub>  Session/graph CRUD             (ima2 session --help)
-    history <sub>  History write-ops              (ima2 history --help)
-    prompt <sub>   Prompt library + folders + import (ima2 prompt --help)
-    multimode <prompt>   Multi-image SSE generation (ima2 multimode --help)
-    node <sub>     Node-mode generate/show          (ima2 node --help)
-    annotate <sub> Image annotations CRUD           (ima2 annotate --help)
-    canvas-versions <sub>  Canvas version save/update (ima2 canvas-versions --help)
+  Client commands (require a running '${CLI_NAME} serve'):
+    gen <prompt>   Generate image(s) from prompt  (${CLI_NAME} gen --help)
+    edit <file>    Edit an existing image         (${CLI_NAME} edit --help)
+    ls             List recent history            (${CLI_NAME} ls --help)
+    show <name>    Show one history item          (${CLI_NAME} show --help)
+    session <sub>  Session/graph CRUD             (${CLI_NAME} session --help)
+    history <sub>  History write-ops              (${CLI_NAME} history --help)
+    prompt <sub>   Prompt library + folders + import (${CLI_NAME} prompt --help)
+    multimode <prompt>   Multi-image SSE generation (${CLI_NAME} multimode --help)
+    node <sub>     Node-mode generate/show          (${CLI_NAME} node --help)
+    annotate <sub> Image annotations CRUD           (${CLI_NAME} annotate --help)
+    canvas-versions <sub>  Canvas version save/update (${CLI_NAME} canvas-versions --help)
     metadata <file>  Read embedded metadata
-    comfy <sub>    ComfyUI workflow export          (ima2 comfy --help)
-    cardnews <sub> Card News templates/jobs/export  (ima2 cardnews --help)
-    ps             List active jobs               (ima2 ps --help)
-    cancel <id>    Mark an in-flight job canceled (ima2 cancel --help)
-    inflight <sub> Inflight jobs (ls / rm)         (ima2 inflight --help)
-    storage <sub>  Storage status / open-dir       (ima2 storage --help)
+    comfy <sub>    ComfyUI workflow export          (${CLI_NAME} comfy --help)
+    cardnews <sub> Card News templates/jobs/export  (${CLI_NAME} cardnews --help)
+    ps             List active jobs               (${CLI_NAME} ps --help)
+    cancel <id>    Mark an in-flight job canceled (${CLI_NAME} cancel --help)
+    inflight <sub> Inflight jobs (ls / rm)         (${CLI_NAME} inflight --help)
+    storage <sub>  Storage status / open-dir       (${CLI_NAME} storage --help)
     billing        API usage / quota
     providers      Configured providers
-    oauth <sub>    OAuth proxy status              (ima2 oauth --help)
-    config <sub>   Config get/set/ls/path/rm       (ima2 config --help)
+    oauth <sub>    OAuth proxy status              (${CLI_NAME} oauth --help)
+    config <sub>   Config get/set/ls/path/rm       (${CLI_NAME} config --help)
     ping           Ping running server / check health
 
   Options:
@@ -353,12 +354,12 @@ function showHelp() {
     -h, --help     Show help
 
   Examples:
-    ima2 serve                       Start server
-    ima2 serve --dev                 Start with verbose server diagnostics
-    ima2 gen "a shiba in space"      Generate from CLI
-    ima2 gen "merge" --ref a.png --ref b.png -q high -o out.png
-    ima2 ls -n 10                    Last 10 generations
-    ima2 ping                        Health check
+    ${CLI_NAME} serve                       Start server
+    ${CLI_NAME} serve --dev                 Start with verbose server diagnostics
+    ${CLI_NAME} gen "a shiba in space"      Generate from CLI
+    ${CLI_NAME} gen "merge" --ref a.png --ref b.png -q high -o out.png
+    ${CLI_NAME} ls -n 10                    Last 10 generations
+    ${CLI_NAME} ping                        Health check
 `);
 }
 
@@ -383,7 +384,7 @@ switch (command) {
     break;
   case "setup":
   case "login":
-    setup().then(() => console.log("  Done. Run 'ima2 serve' to start."));
+    setup().then(() => console.log(`  Done. Run '${CLI_NAME} serve' to start.`));
     break;
   case "status":
     showStatus();
@@ -397,7 +398,7 @@ switch (command) {
   case "reset":
     if (existsSync(CONFIG_FILE)) {
       writeFileSync(CONFIG_FILE, "{}");
-      console.log("  Config reset. Run 'ima2 serve' to reconfigure.");
+      console.log(`  Config reset. Run '${CLI_NAME} serve' to reconfigure.`);
     } else {
       console.log("  No config to reset.");
     }
@@ -439,6 +440,6 @@ switch (command) {
   }
   default:
     console.log(`  Unknown command: "${command}"`);
-    console.log("  Run 'ima2 --help' for usage.\n");
+    console.log(`  Run '${CLI_NAME} --help' for usage.\n`);
     process.exit(1);
 }

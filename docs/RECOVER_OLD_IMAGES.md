@@ -32,7 +32,7 @@ Sorry for the scare. Older global installs may have kept images inside the packa
 Run:
 
 ```bash
-ima2 doctor
+ima2x doctor
 ```
 
 The Storage section shows the current gallery folder and whether legacy folders were found.

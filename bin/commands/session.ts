@@ -4,7 +4,7 @@ import { resolveServer, request } from "../lib/client.js";
 import { out, die, color, json, exitCodeForError, table } from "../lib/output.js";
 
 const HELP = `
-  ima2 session <subcommand> [options]
+  ima2x session <subcommand> [options]
 
   Subcommands:
     ls [--json]                            List sessions

@@ -17,7 +17,7 @@ const SPEC = {
 export default async function lsCmd(argv: string[]) {
   const args = parseArgs(argv, SPEC);
   if (args.help) {
-    out("ima2 ls [-n count] [--session <id>] [--favorites] [--json]");
+    out("ima2x ls [-n count] [--session <id>] [--favorites] [--json]");
     return;
   }
 

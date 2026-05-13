@@ -28,7 +28,7 @@ const en: Dict = {
   'hero.h1.em': 'love.',
   'hero.sub':
     "An image studio for the way you actually iterate. Generate in Classic, fan out variations in a Node graph, run multimode batches, then clean up the winning frame in Canvas Mode.",
-  'hero.cta.cmd': 'npx ima2-gen serve',
+  'hero.cta.cmd': 'npx @damagethundercat/ima2-gen serve',
   'hero.cross.lang': '한국어 README →',
   'hero.shot.alt':
     'ima2-gen Classic mode showing the prompt composer, generated image, model label, and result metadata.',
@@ -149,7 +149,7 @@ const en: Dict = {
     'No — it runs through the `Codex CLI`. If the CLI is missing, `ima2-gen` prompts you to install it on first run, then opens a login window. Approve and you are good to go.',
   'faq.install.q2': 'How do I install ima2-gen?',
   'faq.install.a2':
-    'Open Terminal (macOS / Linux) or PowerShell (Windows). Install globally with `npm install -g ima2-gen`, then run `ima2 serve`. Open `http://localhost:3333` in your browser.',
+    'Open Terminal (macOS / Linux) or PowerShell (Windows). Install globally with `npm install -g @damagethundercat/ima2-gen`, then run `ima2x serve`. Open `http://localhost:3333` in your browser.',
   'faq.install.q3': 'What is npm? Is there a one-click install?',
   'faq.install.a3':
     '`npm` is the Node.js package manager. If you do not have it, use the installer for your OS — it helps set up Node when needed, installs `ima2-gen`, and starts the server.',
@@ -219,7 +219,7 @@ const ko: Dict = {
   'hero.h1.em': '바로 펼치기.',
   'hero.sub':
     '한 장으로 끝나지 않는 작업을 위한 이미지 스튜디오. Classic에서 만들고, Node에서 방향을 펼치고, multimode로 후보를 빠르게 보고, Canvas Mode에서 결과를 정리하세요.',
-  'hero.cta.cmd': 'npx ima2-gen serve',
+  'hero.cta.cmd': 'npx @damagethundercat/ima2-gen serve',
   'hero.cross.lang': 'English landing →',
   'hero.shot.alt':
     'ima2-gen Classic 모드 — 프롬프트 컴포저, 생성 이미지, 모델 라벨, 결과 메타가 한 화면에.',
@@ -343,7 +343,7 @@ const ko: Dict = {
     '아니요. `Codex CLI`로 실행됩니다. CLI가 없으면 `ima2-gen`이 첫 실행 때 설치를 안내하고, 로그인 창을 띄워줍니다. 안내대로 깔면 바로 시작할 수 있습니다.',
   'faq.install.q2': '어떻게 설치하나요?',
   'faq.install.a2':
-    '터미널(macOS / Linux) 또는 PowerShell(Windows)을 엽니다. `npm install -g ima2-gen`으로 전역 설치하고 `ima2 serve`로 실행하세요. 브라우저에서 `http://localhost:3333`을 열면 됩니다.',
+    '터미널(macOS / Linux) 또는 PowerShell(Windows)을 엽니다. `npm install -g @damagethundercat/ima2-gen`으로 전역 설치하고 `ima2x serve`로 실행하세요. 브라우저에서 `http://localhost:3333`을 열면 됩니다.',
   'faq.install.q3': 'npm이 뭔가요? 한 번에 설치하는 방법이 있나요?',
   'faq.install.a3':
     '`npm`은 Node.js 패키지 매니저입니다. 처음이라면 OS별 설치 스크립트를 사용할 수 있습니다. 스크립트는 Node가 없으면 설치를 안내하고, `ima2-gen` 설치와 서버 실행을 돕습니다.',

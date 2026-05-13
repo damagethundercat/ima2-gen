@@ -3,7 +3,7 @@ import { resolveServer, request } from "../lib/client.js";
 import { out, die, color, json, table, exitCodeForError } from "../lib/output.js";
 
 const HELP = `
-  ima2 <domain> <subcommand> [options]
+  ima2x <domain> <subcommand> [options]
 
   Storage:
     storage status [--json]                  Storage inspection

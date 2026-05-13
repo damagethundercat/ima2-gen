@@ -18,7 +18,7 @@ const SPEC = {
 
 export default async function showCmd(argv: string[]) {
   const args = parseArgs(argv, SPEC);
-  if (args.help) { out("ima2 show <filename> [--json] [--reveal] [--metadata]"); return; }
+  if (args.help) { out("ima2x show <filename> [--json] [--reveal] [--metadata]"); return; }
   const name = args.positional[0];
   if (!name) die(2, "filename required");
 

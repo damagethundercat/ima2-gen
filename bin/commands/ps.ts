@@ -16,7 +16,7 @@ const SPEC = {
 
 export default async function psCmd(argv: string[]) {
   const args = parseArgs(argv, SPEC);
-  if (args.help) { out("ima2 ps [--kind classic|node|multimode] [--session id] [--terminal] [--json]"); return; }
+  if (args.help) { out("ima2x ps [--kind classic|node|multimode] [--session id] [--terminal] [--json]"); return; }
 
   let server;
   try { server = await resolveServer({ serverFlag: args.server }); }

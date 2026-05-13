@@ -4,7 +4,7 @@ import { resolveServer, request } from "../lib/client.js";
 import { out, die, color, json, exitCodeForError } from "../lib/output.js";
 
 const HELP = `
-  ima2 comfy <subcommand> [options]
+  ima2x comfy <subcommand> [options]
 
   Subcommands:
     export <filename> [-o <out>] [--force]

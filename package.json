@@ -1,10 +1,10 @@
 {
-  "name": "ima2-gen",
-  "version": "1.1.10",
+  "name": "@damagethundercat/ima2-gen",
+  "version": "1.2.0",
   "description": "Local OAuth image generation studio with classic and node workflows",
   "type": "module",
   "bin": {
-    "ima2": "./bin/ima2.js"
+    "ima2x": "./bin/ima2.js"
   },
   "scripts": {
     "start": "node bin/ima2.js serve",
@@ -21,9 +21,9 @@
     "prepack": "npm run ui:build && npm run build:server && npm run build:cli",
     "prepublishOnly": "npm run typecheck && npm run typecheck:tests && npm run test:inventory && npm run ui:build && npm run build:server && npm run build:cli && npm run lint:pkg && npm run test:package-install",
     "lint:pkg": "node -e \"const p=require('./package.json'); const req=['name','version','bin']; for(const k of req){if(!p[k])throw new Error('missing '+k)} const mustInclude=['bin/','lib/','routes/','integrations/comfyui/ima2_gen_bridge/__init__.py','integrations/comfyui/ima2_gen_bridge/nodes.py','integrations/comfyui/ima2_gen_bridge/README.md','assets/card-news/templates/','server.js']; for(const f of mustInclude){if(!p.files.includes(f))throw new Error('files[] must include '+f)}\"",
-    "release:patch": "npm version patch && npm publish && git push origin main --tags",
-    "release:minor": "npm version minor && npm publish && git push origin main --tags",
-    "release:major": "npm version major && npm publish && git push origin main --tags",
+    "release:patch": "npm version patch && npm publish --access public && git push origin main --tags",
+    "release:minor": "npm version minor && npm publish --access public && git push origin main --tags",
+    "release:major": "npm version major && npm publish --access public && git push origin main --tags",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "typecheck:tests": "tsc --noEmit -p tsconfig.tests.json",
     "build:server": "tsc -p tsconfig.build.json",
@@ -39,7 +39,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/lidge-jun/ima2-gen.git"
+    "url": "https://github.com/damagethundercat/ima2-gen.git"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "files": [
     "bin/",

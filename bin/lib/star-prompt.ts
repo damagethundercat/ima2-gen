@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { createInterface } from "node:readline/promises";
 import { config } from "../../config.js";
 
-const REPO = "lidge-jun/ima2-gen";
+const REPO = "damagethundercat/ima2-gen";
 
 export function starPromptStatePath() {
   return join(config.storage.configDir, "state", "star-prompt.json");
@@ -81,17 +81,17 @@ export async function maybePromptGithubStar(deps: any = {}) {
   await markPromptedImpl();
 
   const askYesNoImpl = deps.askYesNoFn ?? askYesNo;
-  const approved = await askYesNoImpl("[ima2] Enjoying ima2-gen? Star it on GitHub? [Y/n] ");
+  const approved = await askYesNoImpl("[ima2x] Enjoying ima2-gen? Star it on GitHub? [Y/n] ");
   if (!approved) return;
 
   const starRepoImpl = deps.starRepoFn ?? starRepo;
   const star = starRepoImpl();
   if (star.ok) {
     const log = deps.logFn ?? console.log;
-    log("[ima2] Thanks for the star!");
+    log("[ima2x] Thanks for the star!");
     return;
   }
 
   const warn = deps.warnFn ?? console.warn;
-  warn(`[ima2] Could not star repository automatically: ${star.error}`);
+  warn(`[ima2x] Could not star repository automatically: ${star.error}`);
 }

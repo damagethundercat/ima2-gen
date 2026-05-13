@@ -33,7 +33,7 @@ const SPEC = {
 };
 
 const HELP = `
-  ima2 edit <file> --prompt "<text>" [options]
+  ima2x edit <file> --prompt "<text>" [options]
 
   Edit an existing image (inpainting-style).
 

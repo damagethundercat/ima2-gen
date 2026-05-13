@@ -31,7 +31,7 @@ const SPEC = {
 };
 
 const HELP = `
-  ima2 multimode <prompt...> [options]
+  ima2x multimode <prompt...> [options]
 
   Stream multi-image generation via SSE (phase / partial / image / done / error).
 

@@ -6,8 +6,17 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import net from "node:net";
 
-function npmCommand() {
-  return process.platform === "win32" ? "npm.cmd" : "npm";
+function npmCommand(args) {
+  if (process.env.npm_execpath) {
+    return { command: process.execPath, args: [process.env.npm_execpath, ...args] };
+  }
+  if (process.platform === "win32") {
+    return {
+      command: process.env.ComSpec || "cmd.exe",
+      args: ["/d", "/s", "/c", "npm.cmd", ...args],
+    };
+  }
+  return { command: "npm", args };
 }
 
 function run(command, args, options = {}) {
@@ -26,6 +35,11 @@ function run(command, args, options = {}) {
     `${command} ${args.join(" ")} failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`,
   );
   return result;
+}
+
+function runNpm(args, options = {}) {
+  const npm = npmCommand(args);
+  return run(npm.command, npm.args, options);
 }
 
 async function freePort() {
@@ -89,7 +103,7 @@ test("packaged tarball installs, serves core status routes, and keeps Card News 
 
   let child = null;
   try {
-    const pack = run(npmCommand(), ["pack", "--json", "--pack-destination", packDir], {
+    const pack = runNpm(["pack", "--json", "--pack-destination", packDir], {
       cwd: process.cwd(),
     });
     const packJson = pack.stdout.match(/\[\s*\{[\s\S]*\}\s*\]\s*$/);
@@ -97,10 +111,10 @@ test("packaged tarball installs, serves core status routes, and keeps Card News 
     const packManifest = JSON.parse(packJson[0]);
     const tarball = join(packDir, packManifest[0].filename);
 
-    run(npmCommand(), ["init", "-y"], { cwd: projectDir });
-    run(npmCommand(), ["install", tarball], { cwd: projectDir });
+    runNpm(["init", "-y"], { cwd: projectDir });
+    runNpm(["install", tarball], { cwd: projectDir });
 
-    const packageRoot = join(projectDir, "node_modules", "ima2-gen");
+    const packageRoot = join(projectDir, "node_modules", "@damagethundercat", "ima2-gen");
     const cliPath = join(packageRoot, "bin", "ima2.js");
     mkdirSync(configDir, { recursive: true });
     writeFileSync(join(configDir, "config.json"), JSON.stringify({ provider: "oauth" }));

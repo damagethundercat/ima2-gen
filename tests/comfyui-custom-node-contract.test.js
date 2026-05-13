@@ -104,7 +104,7 @@ describe("ComfyUI custom node contract", () => {
   it("documents install, prerequisite, security, and scope", () => {
     const readme = readSource(`${bridgeDir}/README.md`);
     assert.match(readme, /ComfyUI\/custom_nodes/);
-    assert.match(readme, /ima2 serve/);
+    assert.match(readme, /ima2x serve/);
     assert.match(readme, /Ima2 Generate/);
     assert.match(readme, /webSearchEnabled/);
     assert.match(readme, /Only loopback HTTP origins are accepted/);

@@ -22,7 +22,7 @@ export async function buildStorageDoctorLines(ctx: RouteRuntimeContext) {
   lines.push("");
   lines.push("  Next step");
   if (status.state === "recoverable") {
-    lines.push("    Old images may still be recoverable. Restart ima2 or copy them manually.");
+    lines.push("    Old images may still be recoverable. Restart ima2x or copy them manually.");
   } else if (status.state === "not_found") {
     lines.push("    No previous generated folder was found on this machine.");
     lines.push("    If the old global install folder was replaced during update, backups may be required.");

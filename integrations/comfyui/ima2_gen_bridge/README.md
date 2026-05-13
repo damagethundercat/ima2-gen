@@ -22,10 +22,10 @@ Restart ComfyUI after installing.
 
 ## Prerequisite
 
-Start the ima2 server before queueing the node:
+Start the ima2-gen fork server before queueing the node:
 
 ```bash
-ima2 serve
+ima2x serve
 ```
 
 The node never asks for OpenAI credentials. It only calls the local ima2 HTTP

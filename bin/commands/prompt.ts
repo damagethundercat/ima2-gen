@@ -5,7 +5,7 @@ import { readStdin } from "../lib/files.js";
 import { out, die, color, json, exitCodeForError, table } from "../lib/output.js";
 
 const HELP = `
-  ima2 prompt <subcommand> [options]
+  ima2x prompt <subcommand> [options]
 
   Core:
     ls [--folder <id>] [--search <q>] [--favorites] [--json]

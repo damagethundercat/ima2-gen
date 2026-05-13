@@ -4,15 +4,20 @@
   <img src="assets/logo.png" alt="ima2-gen logo" width="240">
 </p>
 
-[![npm version](https://img.shields.io/npm/v/ima2-gen)](https://www.npmjs.com/package/ima2-gen)
+[![npm version](https://img.shields.io/npm/v/%40damagethundercat%2Fima2-gen)](https://www.npmjs.com/package/%40damagethundercat%2Fima2-gen)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-> 🌐 **Live site**: [lidge-jun.github.io/ima2-gen](https://lidge-jun.github.io/ima2-gen/) · [한국어](https://lidge-jun.github.io/ima2-gen/ko/)
+> 🌐 **Live site**: [damagethundercat.github.io/ima2-gen](https://damagethundercat.github.io/ima2-gen/) · [한국어](https://damagethundercat.github.io/ima2-gen/ko/)
 >
 > **Read in other languages**: [한국어](docs/README.ko.md) · [日本語](docs/README.ja.md) · [简体中文](docs/README.zh-CN.md)
 
 `ima2-gen` is a local image generation studio for people who want the ChatGPT/Codex image workflow in a small desktop-like web app.
+
+> **Fork note**  
+> This is the `damagethundercat` custom UI fork of [`lidge-jun/ima2-gen`](https://github.com/lidge-jun/ima2-gen). It publishes as `@damagethundercat/ima2-gen` and exposes the `ima2x` command so it does not overwrite the upstream `ima2` CLI.
+>
+> The fork keeps the default `~/.ima2` data/config folder and default local ports for compatibility. Running the upstream server and this fork at the same time is not recommended because their server/OAuth ports and local runtime advertisement file can collide.
 
 Run it with `npx`, sign in with Codex OAuth, type a prompt, and keep iterating with history, references, node branches, multimode batches, and Canvas Mode cleanup. No OpenAI API key is required for the default path, but API-key generation is also supported when configured.
 
@@ -21,7 +26,7 @@ Run it with `npx`, sign in with Codex OAuth, type a prompt, and keep iterating w
 ## Quick Start
 
 ```bash
-npx ima2-gen serve
+npx @damagethundercat/ima2-gen serve
 ```
 
 Then open `http://localhost:3333`.
@@ -30,25 +35,26 @@ If Codex is not logged in yet:
 
 ```bash
 npx @openai/codex login
-npx ima2-gen serve
+npx @damagethundercat/ima2-gen serve
 ```
 
-If `3333` is already occupied, `ima2-gen` binds the next available port and writes the actual URL to `~/.ima2/server.json`. Use `ima2 open` or the URL printed in the terminal instead of assuming the port.
+If `3333` is already occupied, `ima2-gen` binds the next available port and writes the actual URL to `~/.ima2/server.json`. Use `ima2x open` or the URL printed in the terminal instead of assuming the port.
 
 You can also install it globally:
 
 ```bash
-npm install -g ima2-gen
-ima2 serve
+npm install -g @damagethundercat/ima2-gen
+ima2x serve
 ```
 
-Before updating a global install on Windows, stop any running `ima2 serve`
-process. If npm reports `EBUSY` or `resource busy or locked`, close ima2
+Before updating a global install on Windows, stop any running `ima2x serve`
+process. If npm reports `EBUSY` or `resource busy or locked`, close ima2x
 terminals, end stale `node.exe` processes if needed, and retry. If the lock
-persists, reboot and run the update before starting ima2 again.
+persists, reboot and run the update before starting ima2x again.
 
 ## What It Does
 
+- **Custom fork UI**: large bottom prompt composer, right-side prompt builder, image-scoped builder sessions, grouped multimode history, improved image viewer controls, and refreshed Node-mode side panels.
 - **Classic mode**: generate, edit, reuse the current image, paste references, and continue from history.
 - **Node mode**: branch a good image into multiple directions without losing the original.
 - **Multimode batches**: launch several Classic outputs from one prompt, watch slot-by-slot progress, and continue from the best result.
@@ -139,37 +145,37 @@ The settings workspace keeps account, model, appearance, and language controls a
 
 | Command | Description |
 |---|---|
-| `ima2 serve [--dev]` | Start the local web server; `--dev` enables verbose server diagnostics |
-| `ima2 setup` | Reconfigure saved auth |
-| `ima2 status` | Show config and OAuth status |
-| `ima2 doctor` | Diagnose Node, package, config, and auth |
-| `ima2 open` | Open the web UI |
-| `ima2 reset` | Remove saved config |
+| `ima2x serve [--dev]` | Start the local web server; `--dev` enables verbose server diagnostics |
+| `ima2x setup` | Reconfigure saved auth |
+| `ima2x status` | Show config and OAuth status |
+| `ima2x doctor` | Diagnose Node, package, config, and auth |
+| `ima2x open` | Open the web UI |
+| `ima2x reset` | Remove saved config |
 
 ### Client
 
-These require a running `ima2 serve`. The CLI covers every server route. The most common ones are below — the [full CLI reference](docs/CLI.md) lists everything (generation, history, sessions, prompt library, annotations, Card News, observability, config).
+These require a running `ima2x serve`. The CLI covers every server route. The most common ones are below — the [full CLI reference](docs/CLI.md) lists everything (generation, history, sessions, prompt library, annotations, Card News, observability, config).
 
 | Command | Description |
 |---|---|
-| `ima2 gen <prompt>` | Generate from the CLI |
-| `ima2 edit <file> --prompt <text>` | Edit an existing image |
-| `ima2 multimode <prompt>` | Multi-image SSE generation |
-| `ima2 ls [--session <id>] [--favorites]` | List recent history |
-| `ima2 show <name> [--metadata]` | Reveal a generated asset |
-| `ima2 prompt ls -q <search>` | Search the prompt library |
-| `ima2 inflight ls [--terminal]` | List active and recent jobs (alias of `ps`) |
-| `ima2 config set <key> <value>` | Write to `~/.ima2/config.json` |
-| `ima2 ping` | Health-check the running server |
+| `ima2x gen <prompt>` | Generate from the CLI |
+| `ima2x edit <file> --prompt <text>` | Edit an existing image |
+| `ima2x multimode <prompt>` | Multi-image SSE generation |
+| `ima2x ls [--session <id>] [--favorites]` | List recent history |
+| `ima2x show <name> [--metadata]` | Reveal a generated asset |
+| `ima2x prompt ls -q <search>` | Search the prompt library |
+| `ima2x inflight ls [--terminal]` | List active and recent jobs (alias of `ps`) |
+| `ima2x config set <key> <value>` | Write to `~/.ima2/config.json` |
+| `ima2x ping` | Health-check the running server |
 
 The server advertises its actual port at `~/.ima2/server.json`. If `3333` is busy, the backend falls back to `3334+` and CLI commands follow the advertised URL. Override discovery with `--server <url>` or `IMA2_SERVER=http://localhost:3333`.
 
 ```bash
-ima2 gen "poster" --model gpt-5.4 --reasoning-effort high
-ima2 edit input.png --prompt "make it rainy" --web-search
-ima2 multimode "two cats playing" -n 2
-ima2 inflight ls --terminal
-ima2 config set imageModels.reasoningEffort high
+ima2x gen "poster" --model gpt-5.4 --reasoning-effort high
+ima2x edit input.png --prompt "make it rainy" --web-search
+ima2x multimode "two cats playing" -n 2
+ima2x inflight ls --terminal
+ima2x config set imageModels.reasoningEffort high
 ```
 
 Full reference: [docs/CLI.md](docs/CLI.md).
@@ -204,9 +210,9 @@ environment variables > ~/.ima2/config.json > built-in defaults
 
 ### Logging modes
 
-`ima2 serve` keeps terminal output intentionally quiet: startup URLs, warnings, and errors stay visible, while request/node/OAuth structured logs are hidden by default.
+`ima2x serve` keeps terminal output intentionally quiet: startup URLs, warnings, and errors stay visible, while request/node/OAuth structured logs are hidden by default.
 
-Use `ima2 serve --dev`, `npm run dev`, or `IMA2_LOG_LEVEL=debug ima2 serve` when you need request IDs, node generation phases, OAuth stream diagnostics, or inflight state transitions. Explicit `IMA2_LOG_LEVEL` and `~/.ima2/config.json` values still override the built-in defaults.
+Use `ima2x serve --dev`, `npm run dev`, or `IMA2_LOG_LEVEL=debug ima2x serve` when you need request IDs, node generation phases, OAuth stream diagnostics, or inflight state transitions. Explicit `IMA2_LOG_LEVEL` and `~/.ima2/config.json` values still override the built-in defaults.
 
 ## API Reference
 
@@ -224,14 +230,14 @@ Useful references:
 
 ## Troubleshooting
 
-**`ima2 ping` says the server is unreachable**
-Start `ima2 serve`, then check `~/.ima2/server.json`. You can also run `ima2 ping --server http://localhost:3333`.
+**`ima2x ping` says the server is unreachable**
+Start `ima2x serve`, then check `~/.ima2/server.json`. You can also run `ima2x ping --server http://localhost:3333`.
 
 **OAuth login does not work**
-Run `npx @openai/codex login`, confirm `ima2 status`, then restart `ima2 serve`.
+Run `npx @openai/codex login`, confirm `ima2x status`, then restart `ima2x serve`.
 
 **`fetch failed` repeats on a proxy/VPN network**
-Check that the local OAuth proxy is reachable. On networks that require a proxy, enable your proxy client's TUN/TURN-style mode, then retry `npx openai-oauth --port 10531`. If it still fails, set `HTTP_PROXY` and `HTTPS_PROXY` in the same terminal that runs `ima2 serve` or `openai-oauth`.
+Check that the local OAuth proxy is reachable. On networks that require a proxy, enable your proxy client's TUN/TURN-style mode, then retry `npx openai-oauth --port 10531`. If it still fails, set `HTTP_PROXY` and `HTTPS_PROXY` in the same terminal that runs `ima2x serve` or `openai-oauth`.
 
 **Images fail with `API_KEY_REQUIRED`**
 Set `OPENAI_API_KEY` or configure an API key before using `provider: "api"`. The default OAuth path still works without an API key.
@@ -240,23 +246,23 @@ Set `OPENAI_API_KEY` or configure an API key before using `provider: "api"`. The
 The app compresses large JPEG/PNG references before upload. If a file still fails, convert it to JPEG or PNG at a lower resolution and try again. HEIC/HEIF files are not supported by the browser path.
 
 **Old gallery images are missing after updating**
-Recent versions moved generated images from the installed package folder to `~/.ima2/generated`. Run `ima2 doctor` and see [Recover old images](docs/RECOVER_OLD_IMAGES.md).
+Recent versions moved generated images from the installed package folder to `~/.ima2/generated`. Run `ima2x doctor` and see [Recover old images](docs/RECOVER_OLD_IMAGES.md).
 
 **`gpt-5.5` fails but other models work**
 Update Codex CLI first, then retry. If it still fails, your account or backend route may not expose the same image capability or quota for `gpt-5.5` yet; use `gpt-5.4` as the stable fallback.
 
 **The app opened on a different port**
-If the requested server port is busy, `ima2-gen` falls back to the next available port and records it in `~/.ima2/server.json`. If the port is unexpectedly `3457`, your shell may also have inherited `PORT=3457` from another local tool. Run `unset PORT` or start with `IMA2_PORT=3333 ima2 serve`.
+If the requested server port is busy, `ima2-gen` falls back to the next available port and records it in `~/.ima2/server.json`. If the port is unexpectedly `3457`, your shell may also have inherited `PORT=3457` from another local tool. Run `unset PORT` or start with `IMA2_PORT=3333 ima2x serve`.
 
 **Port `10531` is already used on Windows**
-Some Windows security tools, including `AnySign4PC.exe`, may occupy the default OAuth proxy port. Current builds track the actual fallback OAuth port. If you still need a manual override, start with `IMA2_OAUTH_PROXY_PORT=11531 ima2 serve` and check `ima2 doctor`.
+Some Windows security tools, including `AnySign4PC.exe`, may occupy the default OAuth proxy port. Current builds track the actual fallback OAuth port. If you still need a manual override, start with `IMA2_OAUTH_PROXY_PORT=11531 ima2x serve` and check `ima2x doctor`.
 
 For more beginner-friendly answers, see the [FAQ](docs/FAQ.md).
 
 ## Development
 
 ```bash
-git clone https://github.com/lidge-jun/ima2-gen.git
+git clone https://github.com/damagethundercat/ima2-gen.git
 cd ima2-gen
 npm install
 npm run dev
@@ -266,6 +272,43 @@ npm run build
 ```
 
 `npm run dev` builds the UI and starts the TypeScript server entry with `--watch` and verbose server diagnostics. `npm run typecheck`, `npm run build:server`, and `npm run build:cli` verify the TypeScript migration and package emit path. Node mode and Canvas Mode are part of the packaged UI by default.
+
+### Fork maintenance
+
+Keep the original project as `upstream` and this fork as `origin`:
+
+```bash
+git remote rename origin upstream
+git remote add origin https://github.com/damagethundercat/ima2-gen.git
+git fetch --all --prune
+```
+
+Sync upstream changes with merge commits so custom UI history stays visible:
+
+```bash
+git fetch upstream
+git switch main
+git merge upstream/main
+npm run typecheck
+npm test
+```
+
+### Release
+
+First public scoped publish:
+
+```bash
+npm login
+npm run prepublishOnly
+npm publish --access public
+```
+
+For later releases, bump the version, push a `v*` tag, and let `.github/workflows/publish.yml` publish with the repo secret `NPM_TOKEN`:
+
+```bash
+npm version patch
+git push origin main --tags
+```
 
 ## License
 

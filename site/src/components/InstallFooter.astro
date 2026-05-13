@@ -7,11 +7,11 @@ interface Props {
 }
 
 const { lang } = Astro.props;
-const repoUrl = 'https://github.com/lidge-jun/ima2-gen';
-const npmUrl = 'https://www.npmjs.com/package/ima2-gen';
-const koReadme = 'https://github.com/lidge-jun/ima2-gen/blob/main/docs/README.ko.md';
-const jaReadme = 'https://github.com/lidge-jun/ima2-gen/blob/main/docs/README.ja.md';
-const zhReadme = 'https://github.com/lidge-jun/ima2-gen/blob/main/docs/README.zh-CN.md';
+const repoUrl = 'https://github.com/damagethundercat/ima2-gen';
+const npmUrl = 'https://www.npmjs.com/package/%40damagethundercat%2Fima2-gen';
+const koReadme = 'https://github.com/damagethundercat/ima2-gen/blob/main/docs/README.ko.md';
+const jaReadme = 'https://github.com/damagethundercat/ima2-gen/blob/main/docs/README.ja.md';
+const zhReadme = 'https://github.com/damagethundercat/ima2-gen/blob/main/docs/README.zh-CN.md';
 ---
 
 <section class="std install-section" id="install">
@@ -23,8 +23,8 @@ const zhReadme = 'https://github.com/lidge-jun/ima2-gen/blob/main/docs/README.zh
     <p class="section-lede reveal">{t(lang, 'install.lede')}</p>
     <div class="install-grid">
       <div class="install-codes reveal">
-        <CodeCopy command="npx ima2-gen serve" />
-        <CodeCopy command="npm install -g ima2-gen" />
+        <CodeCopy command="npx @damagethundercat/ima2-gen serve" />
+        <CodeCopy command="npm install -g @damagethundercat/ima2-gen" />
         <CodeCopy command="npx @openai/codex login" highlight="@openai/codex" />
       </div>
       <div class="install-meta reveal">

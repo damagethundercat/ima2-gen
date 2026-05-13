@@ -49,7 +49,7 @@ export async function resolveServer({ serverFlag }: any = {}) {
     const health = await probe(base);
     if (health) return { base, health };
   }
-  const err: any = new Error("server unreachable — is 'ima2 serve' running?");
+  const err: any = new Error("server unreachable — is 'ima2x serve' running?");
   err.code = "SERVER_UNREACHABLE";
   throw err;
 }

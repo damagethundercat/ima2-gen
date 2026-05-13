@@ -8,7 +8,7 @@
 #   ./scripts/release.sh 1.2.0    → explicit version
 set -e
 
-PKG_NAME="ima2-gen"
+PKG_NAME="@damagethundercat/ima2-gen"
 
 echo "🎨 $PKG_NAME release script"
 echo "========================="
@@ -95,4 +95,5 @@ fi
 echo ""
 echo "✅ $PKG_NAME@$VERSION published!"
 echo "   Install: npm install -g $PKG_NAME"
-echo "   Release: https://github.com/lidge-jun/ima2-gen/releases/tag/v$VERSION"
+echo "   Run:     ima2x serve"
+echo "   Release: https://github.com/damagethundercat/ima2-gen/releases/tag/v$VERSION"

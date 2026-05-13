@@ -6,7 +6,7 @@ import { out, die, color, json, exitCodeForError } from "../lib/output.js";
 import { getCliBrowserId } from "../lib/browser-id.js";
 
 const HELP = `
-  ima2 annotate <subcommand> <filename> [options]
+  ima2x annotate <subcommand> <filename> [options]
 
   Subcommands:
     get <filename> [--json]

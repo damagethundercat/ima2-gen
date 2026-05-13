@@ -10,13 +10,13 @@ For Korean, see [FAQ.ko.md](FAQ.ko.md).
 
 | Symptom | Try first |
 |---|---|
-| The server is unreachable | Run `ima2 serve`, then `ima2 ping`. |
-| OAuth login fails | Run `npx @openai/codex login`, then restart `ima2 serve`. |
+| The server is unreachable | Run `ima2x serve`, then `ima2x ping`. |
+| OAuth login fails | Run `npx @openai/codex login`, then restart `ima2x serve`. |
 | API key provider says `API_KEY_REQUIRED` | Configure an API key, or switch back to the OAuth provider. |
-| Old gallery images look missing | Run `ima2 doctor`, then see [Recover Old Generated Images](RECOVER_OLD_IMAGES.md). |
+| Old gallery images look missing | Run `ima2x doctor`, then see [Recover Old Generated Images](RECOVER_OLD_IMAGES.md). |
 | `gpt-5.5` fails | Update Codex CLI first, then try `gpt-5.4` as the stable fallback. |
 | Reference upload fails | Use JPEG/PNG, lower the resolution, and keep references to 5 images or fewer. |
-| Windows reports OAuth/proxy failures around port `10531` | Run `ima2 doctor`; if needed start with `IMA2_OAUTH_PROXY_PORT=11531 ima2 serve`. |
+| Windows reports OAuth/proxy failures around port `10531` | Run `ima2x doctor`; if needed start with `IMA2_OAUTH_PROXY_PORT=11531 ima2x serve`. |
 | `fetch failed` repeats on a proxy/VPN network | Enable proxy TUN/TURN-style mode, or set `HTTP_PROXY` / `HTTPS_PROXY` in the same terminal. |
 
 ## Install and update
@@ -30,26 +30,26 @@ Use Node.js 20 or newer. The package declares Node `>=20`, and the README badge 
 Both are supported.
 
 ```bash
-npx ima2-gen serve
+npx @damagethundercat/ima2-gen serve
 ```
 
 or:
 
 ```bash
-npm install -g ima2-gen
-ima2 serve
+npm install -g @damagethundercat/ima2-gen
+ima2x serve
 ```
 
 If an old global install behaves strangely, update first:
 
 ```bash
-npm install -g ima2-gen@latest
+npm install -g @damagethundercat/ima2-gen@latest
 ```
 
 Then run:
 
 ```bash
-ima2 doctor
+ima2x doctor
 ```
 
 ### Windows says `spawn EINVAL`. What should I do?
@@ -61,12 +61,12 @@ If Codex login itself is unreliable on native Windows, WSL can be the more predi
 ### Windows says `EBUSY` or `resource busy or locked` during update. What should I do?
 
 This usually means npm cannot replace the global package because a running
-`ima2 serve`, stale `node.exe`, terminal, Explorer window, antivirus, or indexer
+`ima2x serve`, stale `node.exe`, terminal, Explorer window, antivirus, or indexer
 still holds the package folder. Stop ima2, close related terminals, end stale
 `node.exe` processes if needed, then retry:
 
 ```bash
-npm install -g ima2-gen@latest
+npm install -g @damagethundercat/ima2-gen@latest
 ```
 
 If the lock persists, reboot Windows and run the update before starting ima2
@@ -90,10 +90,10 @@ Yes. `ima2-gen` checks for an existing Codex login and uses the local OAuth path
 
 ```bash
 npx @openai/codex login
-ima2 doctor
+ima2x doctor
 ```
 
-Then restart `ima2 serve`.
+Then restart `ima2x serve`.
 
 ### What if I see `Provided authentication token is expired`?
 
@@ -101,7 +101,7 @@ Your Codex/ChatGPT OAuth session needs to be refreshed.
 
 ```bash
 npx @openai/codex login
-ima2 serve
+ima2x serve
 ```
 
 If this happens on a company network, a firewall, VPN, proxy, or captive portal may also be blocking the OAuth flow.
@@ -146,7 +146,7 @@ Sorry for the scare. If the old global install folder was replaced during an upd
 Run:
 
 ```bash
-ima2 doctor
+ima2x doctor
 ```
 
 Then follow [Recover Old Generated Images](RECOVER_OLD_IMAGES.md).
@@ -157,7 +157,7 @@ No. The migration is copy-only. It does not delete or move legacy folders. If ol
 
 ### What does "Open folder" open?
 
-The gallery's **Open folder** button opens the generated image folder on the machine running `ima2 serve`.
+The gallery's **Open folder** button opens the generated image folder on the machine running `ima2x serve`.
 
 That is usually your own computer. If you are using a remote server, SSH session, VM, container, WSL, or another machine on your network, the folder opens or resolves on that server machine, not necessarily on the browser device.
 
@@ -196,7 +196,7 @@ The API may report reference errors such as `REF_TOO_MANY`, `REF_TOO_LARGE`, `RE
 Use:
 
 ```bash
-ima2 doctor
+ima2x doctor
 ```
 
 to see the configured and actual backend/OAuth URLs.
@@ -206,7 +206,7 @@ to see the configured and actual backend/OAuth URLs.
 Some Windows security software can occupy the default OAuth proxy port. Current builds track the actual fallback port, but you can also force a quieter range:
 
 ```bash
-IMA2_OAUTH_PROXY_PORT=11531 ima2 serve
+IMA2_OAUTH_PROXY_PORT=11531 ima2x serve
 ```
 
 For split frontend development, point Vite at the actual backend:
@@ -227,11 +227,11 @@ Usually one of these:
 Try:
 
 ```bash
-ima2 doctor
-ima2 ping
+ima2x doctor
+ima2x ping
 ```
 
-Then restart `ima2 serve` if needed.
+Then restart `ima2x serve` if needed.
 
 ### What if `fetch failed` keeps happening behind a proxy or VPN?
 
@@ -243,7 +243,7 @@ Try:
 npx openai-oauth --port 10531
 ```
 
-If your network requires a proxy, enable your proxy client's TUN/TURN-style mode so terminal processes can use it. If that is not enough, set the proxy variables in the same terminal that runs `openai-oauth` or `ima2 serve`:
+If your network requires a proxy, enable your proxy client's TUN/TURN-style mode so terminal processes can use it. If that is not enough, set the proxy variables in the same terminal that runs `openai-oauth` or `ima2x serve`:
 
 ```bash
 export HTTP_PROXY=http://127.0.0.1:7890
@@ -261,16 +261,16 @@ OAuth may require access to OpenAI and ChatGPT/Codex-related hosts. A corporate 
 Run these in order:
 
 ```bash
-ima2 doctor
-ima2 status
-ima2 ping
-ima2 ps
+ima2x doctor
+ima2x status
+ima2x ping
+ima2x ps
 npx @openai/codex login
-npm install -g ima2-gen@latest
+npm install -g @damagethundercat/ima2-gen@latest
 ```
 
 If you run the server on a non-default port:
 
 ```bash
-IMA2_SERVER=http://localhost:3333 ima2 ping
+IMA2_SERVER=http://localhost:3333 ima2x ping
 ```

@@ -4,7 +4,7 @@
 # Example: npm latest = 1.0.3 → preview = 1.0.4-preview.20260422153000
 set -euo pipefail
 
-PKG_NAME="ima2-gen"
+PKG_NAME="@damagethundercat/ima2-gen"
 
 cd "$(dirname "$0")/.."
 
@@ -112,4 +112,5 @@ echo ""
 echo "✅ Preview published: $PKG_NAME@$VERSION"
 echo "   Install: npm install -g $PKG_NAME@preview"
 echo "   Exact:   npm install -g $PKG_NAME@$VERSION"
-echo "   Release: https://github.com/lidge-jun/ima2-gen/releases/tag/v$VERSION"
+echo "   Run:     ima2x serve"
+echo "   Release: https://github.com/damagethundercat/ima2-gen/releases/tag/v$VERSION"

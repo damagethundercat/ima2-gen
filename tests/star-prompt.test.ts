@@ -38,7 +38,7 @@ describe("star prompt", () => {
 
     assert.deepStrictEqual(result, { ok: true });
     assert.strictEqual(seenCommand, "gh");
-    assert.deepStrictEqual(seenArgs, ["api", "-X", "PUT", "/user/starred/lidge-jun/ima2-gen"]);
+    assert.deepStrictEqual(seenArgs, ["api", "-X", "PUT", "/user/starred/damagethundercat/ima2-gen"]);
     assert.strictEqual(seenOptions.windowsHide, true);
   });
 
@@ -72,6 +72,6 @@ describe("star prompt", () => {
     });
 
     assert.strictEqual(marked, true);
-    assert.deepStrictEqual(logs, ["[ima2] Thanks for the star!"]);
+    assert.deepStrictEqual(logs, ["[ima2x] Thanks for the star!"]);
   });
 });

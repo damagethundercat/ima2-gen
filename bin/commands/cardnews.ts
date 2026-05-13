@@ -4,7 +4,7 @@ import { out, die, color, json, exitCodeForError } from "../lib/output.js";
 import { config as runtimeConfig } from "../../config.js";
 
 const HELP = `
-  ima2 cardnews <subcommand> [options]
+  ima2x cardnews <subcommand> [options]
 
   Subcommands:
     templates                              List image-templates + role-templates

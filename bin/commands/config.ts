@@ -8,7 +8,7 @@ const CONFIG_FILE = runtimeConfig.storage.configFile;
 const CONFIG_DIR  = runtimeConfig.storage.configDir;
 
 const HELP = `
-  ima2 config <subcommand> [options]
+  ima2x config <subcommand> [options]
 
   Subcommands:
     path                          Print config file path
@@ -194,10 +194,10 @@ async function setSub(argv: string[]) {
   if (!key || rawValue === undefined) die(2, "usage: config set <key> <value>");
 
   if (AUTH_KEYS.has(key)) {
-    die(2, `"${key}" is an auth key. Use 'ima2 setup' or 'ima2 login' to change authentication.`);
+    die(2, `"${key}" is an auth key. Use 'ima2x setup' or 'ima2x login' to change authentication.`);
   }
   if (!KNOWN_KEYS.has(key)) {
-    die(2, `unknown config key: "${key}". Run 'ima2 config ls --effective' to see the config structure.`);
+    die(2, `unknown config key: "${key}". Run 'ima2x config ls --effective' to see the config structure.`);
   }
 
   // Parse value: try JSON, fall back to raw string
@@ -224,7 +224,7 @@ async function setSub(argv: string[]) {
   saveFileCfg(fileCfg);
 
   out(color.green("✓ ") + `wrote ${key}=${JSON.stringify(value)} to ${displayPath(CONFIG_FILE)}`);
-  out(color.dim("note: server must be restarted to pick up config changes (run `ima2 serve`)"));
+  out(color.dim("note: server must be restarted to pick up config changes (run `ima2x serve`)"));
 }
 
 async function rmSub(argv: string[]) {
@@ -233,7 +233,7 @@ async function rmSub(argv: string[]) {
   if (!key) die(2, "key required. Usage: config rm <key>");
 
   if (AUTH_KEYS.has(key)) {
-    die(2, `"${key}" is an auth key. Use 'ima2 setup' or 'ima2 login' to change authentication.`);
+    die(2, `"${key}" is an auth key. Use 'ima2x setup' or 'ima2x login' to change authentication.`);
   }
 
   const fileCfg = loadFileCfg();
@@ -244,7 +244,7 @@ async function rmSub(argv: string[]) {
   }
   saveFileCfg(fileCfg);
   out(color.green("✓ ") + `removed ${key} from ${displayPath(CONFIG_FILE)}`);
-  out(color.dim("note: server must be restarted to pick up config changes (run `ima2 serve`)"));
+  out(color.dim("note: server must be restarted to pick up config changes (run `ima2x serve`)"));
 }
 
 type Sub = (argv: any[]) => Promise<void>;

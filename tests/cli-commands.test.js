@@ -36,7 +36,7 @@ async function waitForHealth(base, timeoutMs = HEALTH_TIMEOUT) {
   throw new Error("server not healthy");
 }
 
-describe("ima2 CLI commands (live server)", () => {
+describe("ima2x CLI commands (live server)", () => {
   let server;
   let serverStderr = "";
 
@@ -71,14 +71,14 @@ describe("ima2 CLI commands (live server)", () => {
     try { rmSync(FAKE_HOME, { recursive: true, force: true }); } catch {}
   });
 
-  it("ima2 ping reaches advertised server", async () => {
+  it("ima2x ping reaches advertised server", async () => {
     const { stdout, code } = await runCLI(["ping"]);
     assert.strictEqual(code, 0);
     assert.match(stdout, /http:\/\/(?:localhost|127\.0\.0\.1):/);
     assert.match(stdout, /v\d/);
   });
 
-  it("ima2 ping --json returns parseable shape", async () => {
+  it("ima2x ping --json returns parseable shape", async () => {
     const { stdout, code } = await runCLI(["ping", "--json"]);
     assert.strictEqual(code, 0);
     const obj = JSON.parse(stdout.trim());
@@ -87,14 +87,14 @@ describe("ima2 CLI commands (live server)", () => {
     assert.ok(Number.isFinite(obj.activeJobs));
   });
 
-  it("ima2 ps --json returns empty jobs", async () => {
+  it("ima2x ps --json returns empty jobs", async () => {
     const { stdout, code } = await runCLI(["ps", "--json"]);
     assert.strictEqual(code, 0);
     const obj = JSON.parse(stdout.trim());
     assert.ok(Array.isArray(obj.jobs));
   });
 
-  it("ima2 ps --terminal --json includes terminal jobs", async () => {
+  it("ima2x ps --terminal --json includes terminal jobs", async () => {
     const { stdout, code } = await runCLI(["ps", "--terminal", "--json"]);
     assert.strictEqual(code, 0);
     const obj = JSON.parse(stdout.trim());
@@ -102,16 +102,16 @@ describe("ima2 CLI commands (live server)", () => {
     assert.ok(Array.isArray(obj.terminalJobs));
   });
 
-  it("ima2 gen without prompt exits 2", async () => {
+  it("ima2x gen without prompt exits 2", async () => {
     const { code, stderr } = await runCLI(["gen"]);
     assert.strictEqual(code, 2);
     assert.match(stderr, /prompt/i);
   });
 
-  it("ima2 gen --help prints usage", async () => {
+  it("ima2x gen --help prints usage", async () => {
     const { stdout, code } = await runCLI(["gen", "--help"]);
     assert.strictEqual(code, 0);
-    assert.match(stdout, /ima2 gen/);
+    assert.match(stdout, /ima2x gen/);
     assert.match(stdout, /--quality/);
     assert.match(stdout, /--model/);
     assert.match(stdout, /--provider/);
@@ -120,10 +120,10 @@ describe("ima2 CLI commands (live server)", () => {
     assert.match(stdout, /--session/);
   });
 
-  it("ima2 edit --help prints current payload options", async () => {
+  it("ima2x edit --help prints current payload options", async () => {
     const { stdout, code } = await runCLI(["edit", "--help"]);
     assert.strictEqual(code, 0);
-    assert.match(stdout, /ima2 edit/);
+    assert.match(stdout, /ima2x edit/);
     assert.match(stdout, /--model/);
     assert.match(stdout, /--provider/);
     assert.match(stdout, /--mode/);
@@ -131,38 +131,38 @@ describe("ima2 CLI commands (live server)", () => {
     assert.match(stdout, /--session/);
   });
 
-  it("ima2 ls --json works when history empty", async () => {
+  it("ima2x ls --json works when history empty", async () => {
     const { stdout, code } = await runCLI(["ls", "--json"]);
     assert.strictEqual(code, 0);
     const obj = JSON.parse(stdout.trim());
     assert.ok(Array.isArray(obj.items));
   });
 
-  it("ima2 multimode --help prints parity options", async () => {
+  it("ima2x multimode --help prints parity options", async () => {
     const { stdout, code } = await runCLI(["multimode", "--help"]);
     assert.strictEqual(code, 0);
-    assert.match(stdout, /ima2 multimode/);
+    assert.match(stdout, /ima2x multimode/);
     assert.match(stdout, /--provider/);
     assert.match(stdout, /--mode/);
     assert.match(stdout, /--ref/);
   });
 
-  it("ima2 ps --help documents multimode jobs", async () => {
+  it("ima2x ps --help documents multimode jobs", async () => {
     const { stdout, code } = await runCLI(["ps", "--help"]);
     assert.strictEqual(code, 0);
     assert.match(stdout, /classic\|node\|multimode/);
   });
 
-  it("ima2 gen with unreachable --server exits 3", async () => {
+  it("ima2x gen with unreachable --server exits 3", async () => {
     const { code, stderr } = await runCLI(["gen", "hi", "--server", "http://127.0.0.1:1"], {
       IMA2_SERVER: "", // clear env
     });
     assert.strictEqual(code, 3);
     assert.match(stderr, /Hint:/);
-    assert.match(stderr, /ima2 serve/);
+    assert.match(stderr, /ima2x serve/);
   });
 
-  it("ima2 gen --json keeps stdout parseable when server is unreachable", async () => {
+  it("ima2x gen --json keeps stdout parseable when server is unreachable", async () => {
     const { stdout, stderr, code } = await runCLI(["gen", "hi", "--json", "--server", "http://127.0.0.1:1"], {
       IMA2_SERVER: "",
     });
@@ -173,7 +173,7 @@ describe("ima2 CLI commands (live server)", () => {
     assert.match(stderr, /Hint:/);
   });
 
-  it("ima2 edit with unreachable --server prints a hint", async () => {
+  it("ima2x edit with unreachable --server prints a hint", async () => {
     const { code, stderr } = await runCLI(["edit", "input.png", "--prompt", "hi", "--server", "http://127.0.0.1:1"], {
       IMA2_SERVER: "",
     });
@@ -181,7 +181,7 @@ describe("ima2 CLI commands (live server)", () => {
     assert.match(stderr, /Hint:/);
   });
 
-  it("ima2 ps with unreachable --server prints a hint", async () => {
+  it("ima2x ps with unreachable --server prints a hint", async () => {
     const { code, stderr } = await runCLI(["ps", "--server", "http://127.0.0.1:1"], {
       IMA2_SERVER: "",
     });
@@ -189,7 +189,7 @@ describe("ima2 CLI commands (live server)", () => {
     assert.match(stderr, /Hint:/);
   });
 
-  it("ima2 cancel with unreachable --server prints a hint", async () => {
+  it("ima2x cancel with unreachable --server prints a hint", async () => {
     const { code, stderr } = await runCLI(["cancel", "req_nope", "--server", "http://127.0.0.1:1"], {
       IMA2_SERVER: "",
     });
@@ -197,26 +197,26 @@ describe("ima2 CLI commands (live server)", () => {
     assert.match(stderr, /Hint:/);
   });
 
-  it("ima2 cancel without requestId exits 2", async () => {
+  it("ima2x cancel without requestId exits 2", async () => {
     const { code, stderr } = await runCLI(["cancel"]);
     assert.strictEqual(code, 2);
     assert.match(stderr, /requestId/i);
   });
 
-  it("ima2 cancel marks a request id canceled", async () => {
+  it("ima2x cancel marks a request id canceled", async () => {
     const { stdout, code } = await runCLI(["cancel", "req_cli_test_cancel"]);
     assert.strictEqual(code, 0);
     assert.match(stdout, /canceled req_cli_test_cancel/);
   });
 
-  it("ima2 cancel --json returns parseable shape", async () => {
+  it("ima2x cancel --json returns parseable shape", async () => {
     const { stdout, code } = await runCLI(["cancel", "req_cli_test_cancel_json", "--json"]);
     assert.strictEqual(code, 0);
     const obj = JSON.parse(stdout.trim());
     assert.deepStrictEqual(obj, { ok: true, requestId: "req_cli_test_cancel_json" });
   });
 
-  it("ima2 --help lists new commands", async () => {
+  it("ima2x --help lists new commands", async () => {
     const { stdout, code } = await runCLI(["--help"]);
     assert.strictEqual(code, 0);
     assert.match(stdout, /gen <prompt>/);

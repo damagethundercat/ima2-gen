@@ -38,9 +38,9 @@ const SPEC = {
 };
 
 const HELP = `
-  ima2 gen <prompt...> [options]
+  ima2x gen <prompt...> [options]
 
-  Generate image(s) via the running ima2 server.
+  Generate image(s) via the running ima2x server.
 
   Options:
     -q, --quality <low|medium|high>         Default: low
@@ -64,10 +64,10 @@ const HELP = `
         --web-search / --no-web-search      Override default web-search toggle
 
   Examples:
-    ima2 gen "a shiba in space"
-    ima2 gen "poster" --model gpt-5.4 --mode direct --moderation low
-    ima2 gen "merge" --ref a.png --ref b.png -q high -o out.png
-    cat prompt.txt | ima2 gen --stdin -n 2 -d ./out
+    ima2x gen "a shiba in space"
+    ima2x gen "poster" --model gpt-5.4 --mode direct --moderation low
+    ima2x gen "merge" --ref a.png --ref b.png -q high -o out.png
+    cat prompt.txt | ima2x gen --stdin -n 2 -d ./out
 `;
 
 export default async function genCmd(argv: string[]) {

@@ -78,7 +78,7 @@ async function tryTerminalRecovery(
       paths: [],
       requestId,
       source: "active",
-      message: `Generation in progress (requestId: ${requestId}). Check: ima2 ps --json`,
+      message: `Generation in progress (requestId: ${requestId}). Check: ima2x ps --json`,
     };
   }
 

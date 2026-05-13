@@ -13,7 +13,7 @@ const SPEC = {
 
 export default async function pingCmd(argv: string[]) {
   const args = parseArgs(argv, SPEC);
-  if (args.help) { out("ima2 ping [--json]"); return; }
+  if (args.help) { out("ima2x ping [--json]"); return; }
 
   try {
     const { base, health } = await resolveServer({ serverFlag: args.server });

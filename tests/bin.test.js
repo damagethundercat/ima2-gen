@@ -32,7 +32,7 @@ function runCLI(args = []) {
   });
 }
 
-describe("ima2 CLI", () => {
+describe("ima2x CLI", () => {
   before(() => {
     if (!existsSync(TEST_DIR)) mkdirSync(TEST_DIR, { recursive: true });
   });
