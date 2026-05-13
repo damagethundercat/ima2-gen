@@ -10,7 +10,7 @@ aliases: [ima2 operations, ima2 infra, image_gen operations]
 
 This document matters because development mode and packaged mode take different paths. Developers run `npm run dev`, which builds the UI and launches the watched server. Users run `ima2 serve`, which checks for `ui/dist` and starts the server. Node mode is enabled in both paths by default. CLI clients read `~/.ima2/server.json` to find the running server. Config and generated data are split between the repo and the user's home directory.
 
-For operations work, choose the layer first. Auth and provider changes touch config and the OAuth proxy. Release work touches `package.json`, `files`, and `prepublishOnly`. Test work touches `scripts/run-tests.mjs` and `tests/*.test.js`. UI build work touches `ui/package.json` and `ui/dist`.
+For operations work, choose the layer first. Auth and provider changes touch config and the OAuth proxy. Release work touches `package.json`, `files`, and `prepublishOnly`. Test work touches `scripts/run-tests.mjs` and `tests/*.test.{js,ts,mjs,cjs,mts,cts}`. UI build work touches `ui/package.json` and `ui/dist`.
 
 ---
 
@@ -38,7 +38,7 @@ graph TD
 | type | `module` |
 | bin | `ima2` -> `./bin/ima2.js` |
 | package engine | `node >=20` |
-| publish files | `bin/`, `lib/`, `routes/`, `ui/dist/`, `docs/`, `assets/`, `assets/card-news/templates/`, `integrations/comfyui/ima2_gen_bridge/*`, `server.ts`, `server.js`, `config.ts`, `config.js`, `.env.example`, `README.md` |
+| publish files | `bin/`, `lib/`, `routes/`, `skills/`, `ui/dist/`, `docs/`, `assets/`, `assets/card-news/templates/`, `integrations/comfyui/ima2_gen_bridge/*`, `server.ts`, `server.js`, `config.ts`, `config.js`, `.env.example`, `README.md` |
 | major dependencies | `express`, `openai`, `openai-oauth`, `better-sqlite3`, `dotenv`, `sharp`, `trash`, `ulid` |
 
 README may still mention a different Node baseline. The operational baseline is the current `engines.node` field in `package.json`.
@@ -59,11 +59,11 @@ README may still mention a different Node baseline. The operational baseline is 
 | `npm run typecheck` | `tsc -p tsconfig.json --noEmit` | Source-level type check for the migrated TypeScript surface |
 | `npm run typecheck:tests` | `tsc -p tsconfig.tests.json --noEmit` | Type check for the `tests/` overlay (runs against the test-only tsconfig) |
 | `npm run test:inventory` | `node scripts/classify-tests.mjs --check --fail-js-runtime` | Inventory gate: classifies `tests/*` and fails if a `.js` runtime test slips back in instead of `.ts` |
-| `npm test` | `node scripts/run-tests.mjs` | Run `tests/*.test.js` / `*.test.ts` with `node:test` |
+| `npm test` | `node scripts/run-tests.mjs` | Run `tests/*.test.{js,ts,mjs,cjs,mts,cts}` with `node:test` |
 | `npm run setup` | `node bin/ima2.js setup` | Configure provider |
 | `npm run lint:pkg` | package metadata check | Validate package fields and publish file list |
 | `npm run test:package-install` | temp tarball install smoke | Installs packed package and checks `ima2 doctor`, `/api/health`, and `/api/storage/status` |
-| `prepack` | `typecheck && build:server && build:cli && ui:build` | Refresh all committed runtime artifacts (server, CLI, UI) before tarball |
+| `prepack` | `ui:build && build:server && build:cli` | Refresh all committed runtime artifacts (UI, server, CLI) before tarball |
 | `prepublishOnly` | `typecheck && typecheck:tests && test:inventory && ui:build && build:server && build:cli && lint:pkg && test:package-install` | Full pre-publish gate: type checks (incl. `tests/` overlay), test-inventory gate, builds, package metadata lint, and tarball install smoke. Note: `npm test` is no longer in this chain — run it explicitly before publish. |
 
 `release:*` scripts include npm publish and git push. Agents must not run them unless the user explicitly asks.
@@ -95,6 +95,7 @@ README may still mention a different Node baseline. The operational baseline is 
 | `IMA2_ADVERTISE_FILE` | Overrides runtime discovery file path |
 | `VITE_IMA2_API_TARGET` / `IMA2_DEV_API_TARGET` | Split Vite dev API proxy target override |
 | `IMA2_IMAGE_MODEL_DEFAULT` | Server fallback image model, default `gpt-5.4-mini` |
+| `IMA2_REASONING_EFFORT` | Server OAuth/default reasoning effort, default `medium` |
 | `IMA2_API_IMAGE_MODEL_DEFAULT` | Default image model for `provider: "api"` (Responses path), default `gpt-5.4-mini` |
 | `IMA2_API_REASONING_EFFORT` | Default reasoning effort for `provider: "api"`, default `low` |
 | `IMA2_API_IMAGE_SIZE` | Default size for `provider: "api"`, default `1024x1024` |
@@ -148,7 +149,7 @@ Logs intentionally use counts rather than sensitive values: `promptChars`, `refs
 
 | Task | Command | Expected result |
 |---|---|---|
-| Full test suite | `npm test` | `scripts/run-tests.mjs` runs `tests/*.test.js` |
+| Full test suite | `npm test` | `scripts/run-tests.mjs` runs `tests/*.test.{js,ts,mjs,cjs,mts,cts}` |
 | UI build | `npm run build` | `ui/dist` is updated |
 | Dev server | `npm run dev` | UI is built, then `tsx watch server.ts` starts with verbose diagnostics |
 | Package sanity | `npm run lint:pkg` | Required `files[]`, `bin`, and version fields are checked |
@@ -161,7 +162,7 @@ Logs intentionally use counts rather than sensitive values: `promptChars`, `refs
 - [ ] Run `npm test`.
 - [ ] Run `npm run build` to refresh `ui/dist`.
 - [ ] Run `npm run lint:pkg` to verify the publish file list.
-- [ ] Run `npm pack --dry-run --json` or rely on `tests/package-smoke.test.js` to confirm README, recovery docs, storage routes, doctor files, and `ui/dist/index.html` are included in the publish manifest.
+- [ ] Run `npm pack --dry-run --json` or rely on `tests/package-smoke.test.js` to confirm README, recovery docs, storage routes, doctor files, `skills/ima2/SKILL.md`, and `ui/dist/index.html` are included in the publish manifest.
 - [ ] Run `npm run test:package-install` before publish when you want a full tarball install smoke. This is opt-in because it performs a real temp `npm install`.
 - [ ] Check README and `structure/` docs for Node baseline, provider wording, and CLI table drift.
 - [ ] Do not run release scripts automatically; they include push/publish behavior.
@@ -186,6 +187,7 @@ Logs intentionally use counts rather than sensitive values: `promptChars`, `refs
 - 2026-04-28: Bumped package metadata to ima2-gen 1.1.5, added `sharp` as a major dependency, recorded the full `prepublishOnly` chain, and expanded the environment variable surface to cover dev/card-news flags, generated/trash directory overrides, SQLite path, OAuth timeouts, style-sheet limits, body/reference/metadata limits, graph guardrails, and Vite dev flags.
 - 2026-04-30: Bumped package metadata to ima2-gen 1.1.8 — added `trash` as a major dependency for OS-trash soft delete (`lib/systemTrash.ts`), expanded the publish files list with `assets/card-news/templates/`, `integrations/comfyui/ima2_gen_bridge/*`, and TypeScript-source pairs (`server.ts`, `config.ts`), introduced the `prepack` artifact-refresh chain, added `build:server`, `build:cli`, `typecheck` scripts, switched `dev:server` to `tsx watch server.ts`, and removed `npm test` from the `prepublishOnly` chain (run tests explicitly before publish).
 - 2026-05-06: Bumped package metadata to ima2-gen 1.1.10. Added `npm run typecheck:tests` (`tsconfig.tests.json`) and `npm run test:inventory` (`scripts/classify-tests.mjs --check --fail-js-runtime`) as pre-publish gates and updated the `prepublishOnly` chain accordingly. Added env vars `IMA2_API_IMAGE_MODEL_DEFAULT`, `IMA2_API_REASONING_EFFORT`, `IMA2_API_IMAGE_SIZE`, `IMA2_API_ALLOW_WEB_SEARCH` (API-key Responses defaults, #49) and `IMA2_OAUTH_MASKED_EDIT_ENABLED` (#31 masked-edit feature flag). Noted the `lib/oauthProxy.ts` → `lib/oauthProxy/*` subtree split (#50) — no env-var or publish-file change.
+- 2026-05-13: Added `skills/` to the package contract for #62 and documented `IMA2_REASONING_EFFORT` as the OAuth/default reasoning env override exposed by `ima2 defaults`.
 
 Previous document: `[[05-node-mode]]`
 

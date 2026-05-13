@@ -41,6 +41,7 @@ graph TD
 | Method | Path | Response | Description |
 |---|---|---|---|
 | `GET` | `/api/providers` | `{ apiKey, oauth, oauthPort, apiKeyDisabled, apiKeySource, runtime }` | Reports available providers and runtime ports to the UI. `apiKeyDisabled` is a legacy compatibility field and is `false` in current API-provider builds. |
+| `GET` | `/api/capabilities` | `{ ok, source, version, defaults, valid, limits, guidance }` | Agent-facing runtime defaults and capability metadata; uses allowlist projection only |
 | `GET` | `/api/health` | `{ ok, version, provider, uptimeSec, activeJobs, pid, startedAt, runtime }` | Used by CLI discovery and health checks |
 | `GET` | `/api/oauth/status` | `{ status, models?, runtime }` | Checks whether the OAuth proxy is ready and reports actual proxy URL/port |
 | `GET` | `/api/billing` | `{ oauth, apiKeyValid, apiKeySource, credits?, costs? }` | Probes billing/model state when an API key exists |
@@ -54,6 +55,8 @@ The live generation/edit provider can be OAuth or API-key based. Both paths use 
 Storage endpoints are local-support helpers. `/api/storage/open-generated-dir` never accepts a browser-supplied path; it opens `ctx.config.storage.generatedDir` only.
 
 Runtime responses expose configured and actual ports separately. The backend can bind `3334+` when `3333` is occupied, and the OAuth proxy can report an actual fallback port when `10531` is occupied. Clients should follow the URL in `~/.ima2/server.json` or the `runtime.*.url` fields rather than rebuilding URLs from configured defaults.
+
+`/api/capabilities` exists for agents and CLI discovery. It reports provider-specific defaults, supported versus unsupported image model ids, valid reasoning efforts, valid quality values, reference/image limits, and advisory parallel queue metadata. The endpoint must never serialize the full runtime config. It uses an allowlist projection and converts `Set` values to arrays so JSON clients receive stable arrays instead of `{}`.
 
 ## Classic Generate And Edit
 
@@ -288,6 +291,7 @@ Node retry diagnostics include safe context such as `operation`, `clientNodeId`,
 - 2026-04-30: Added `DELETE /api/history/:filename/permanent`, switched all `lib/*` and `routes/*` references to `.ts` source paths after the TypeScript migration close, and clarified that soft-delete now routes through `lib/systemTrash.ts` (OS trash) instead of `.trash/`.
 - 2026-04-28: Added PR2 prompt import curated-source, curated-search, and curated-refresh API contracts plus file-cache and tag-based attribution notes.
 - 2026-05-06: Documented API-key Responses parity for generate/edit/multimode/node (#49) via `lib/responsesImageAdapter.ts` and the `IMA2_API_*` env defaults; documented the `IMA2_OAUTH_MASKED_EDIT_ENABLED` feature flag and its `lib/oauthProxy/generators.ts` guard for #31; documented prompt safety intent policy injection from `lib/promptSafetyPolicy.ts` into `lib/oauthProxy/prompts.ts` and the API-key adapter.
+- 2026-05-13: Added `/api/capabilities` as the agent-facing runtime metadata endpoint for #62.
 
 Previous document: `[[02-command-reference]]`
 

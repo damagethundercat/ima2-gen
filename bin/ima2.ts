@@ -347,6 +347,9 @@ function showHelp() {
     providers      Configured providers
     oauth <sub>    OAuth proxy status              (${CLI_NAME} oauth --help)
     config <sub>   Config get/set/ls/path/rm       (${CLI_NAME} config --help)
+    defaults <sub> Inspect/change model defaults   (${CLI_NAME} defaults --help)
+    capabilities   Agent capability metadata       (${CLI_NAME} capabilities --help)
+    skill          Print packaged agent skill      (${CLI_NAME} skill --help)
     ping           Ping running server / check health
 
   Options:
@@ -359,6 +362,9 @@ function showHelp() {
     ${CLI_NAME} gen "a shiba in space"      Generate from CLI
     ${CLI_NAME} gen "merge" --ref a.png --ref b.png -q high -o out.png
     ${CLI_NAME} ls -n 10                    Last 10 generations
+    ${CLI_NAME} skill                       Print agent usage skill
+    ${CLI_NAME} capabilities --json         Inspect supported models/options
+    ${CLI_NAME} defaults --json             Inspect running server defaults
     ${CLI_NAME} ping                        Health check
 `);
 }
@@ -373,7 +379,7 @@ if (args.includes("-v") || args.includes("--version")) {
 }
 
 if ((!command || args.includes("-h") || args.includes("--help"))
-    && !["gen", "edit", "ls", "show", "ps", "cancel", "session", "history", "prompt", "multimode", "node", "annotate", "canvas-versions", "metadata", "comfy", "cardnews", "inflight", "storage", "billing", "providers", "oauth", "config", "ping"].includes(command)) {
+    && !["gen", "edit", "ls", "show", "ps", "cancel", "session", "history", "prompt", "multimode", "node", "annotate", "canvas-versions", "metadata", "comfy", "cardnews", "inflight", "storage", "billing", "providers", "oauth", "config", "defaults", "capabilities", "skill", "ping"].includes(command)) {
   showHelp();
   process.exit(command ? 0 : 1);
 }
@@ -420,6 +426,9 @@ switch (command) {
   case "comfy":
   case "cardnews":
   case "config":
+  case "defaults":
+  case "capabilities":
+  case "skill":
   case "ping": {
     const { setCliVersion } = await import("./lib/client.js");
     setCliVersion(pkg.version);

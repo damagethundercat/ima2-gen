@@ -10,7 +10,7 @@ aliases: [ima2 devlog map, image_gen roadmap, devlog map]
 
 This map matters because plans from multiple eras coexist. `_plan/README.md` is the current source of truth for active lanes; there is no current `devlog/_plan/unified-roadmap.md` file. Completed implementation records live under `_fin/`, including the old 0.09 stabilization work, card-news, prompt-library import, ComfyUI bridge, Canvas Mode core phases, and recent Gallery/Canvas navigation fixes. Structure docs should follow the current code and active roadmap rather than stale plan folders.
 
-For planning work, read `_plan/README.md` first. As of 2026-05-11 the TypeScript migration gate is closed and archived; App Weight Reduction #36 is archived under `_fin/260429_app-weight-reduction`; CLI feature-parity #45 (commit 9698fc1) is shipped and follow-up CLI drift is implemented in #61. After the 2026-04-30 naming-standard pass, the active lane is centered on Canvas Mode follow-ons (`260429_issue46-blank-canvas-paint-to-ai/`), inflight reload reconcile (#47), prompt import search UX (#48), post-TS mobile/community UX plans (`260428_issue33-mobile-overhaul-logs/`, `260429_community-ux-split-triage/`, #37-#43), Canvas Intelligence issue subplans (`260430_issue27/28/31`), the `260428_censorship-bypass-research` reference, issue #59 first-node action, and issue #60 multimode progress closeout.
+For planning work, read `_plan/README.md` first. As of 2026-05-13 the TypeScript migration gate is closed and archived; App Weight Reduction #36 is archived under `_fin/260429_app-weight-reduction`; CLI feature-parity #45 (commit 9698fc1) is shipped and follow-up CLI drift is implemented in #61. After the 2026-04-30 naming-standard pass, the active lane is centered on Canvas Mode follow-ons (`260429_issue46-blank-canvas-paint-to-ai/`), inflight reload reconcile (#47), prompt import search UX (#48), post-TS mobile/community UX plans (`260428_issue33-mobile-overhaul-logs/`, `260429_community-ux-split-triage/`, #37-#43), Canvas Intelligence issue subplans (`260430_issue27/28/31`), the `260428_censorship-bypass-research` reference, issue #59 first-node action, issue #60 multimode progress closeout, and issue #62 CLI skill/capability discovery.
 
 ---
 
@@ -59,6 +59,7 @@ graph TD
 | `devlog/_plan/260503_error-toast-stack/` | shipped 2026-05-06 | Error toast stacking at the bottom-right with per-toast dismissal (commit 78cb6d4). |
 | `devlog/_plan/260508_issue60-multimode-incremental-progress/` | shipped locally / awaiting upstream sync | #60 multimode incremental progress: individual final-image save/SSE events, multimode polling, partial timeout behavior. |
 | `devlog/_fin/260510_issue61-cli-feature-parity-audit/` | shipped 2026-05-11 | #61 CLI parity slice: web-search flags verified, provider override, multimode refs/mode, `ps` multimode help, favorites pagination, masked-edit CLI deferral, and CLI payload tests. |
+| `devlog/_plan/260513_issue62-cli-skill-capabilities/` | active | #62 CLI/package skill discovery: packaged `skills/ima2/SKILL.md`, `ima2 skill`, `ima2 capabilities`, and `ima2 defaults`. |
 | `devlog/_plan/typescript-strict-and-runtime-migration/` | reference | TS strict + runtime migration plan tree (P00–P09). #50 (7367333) is the follow-up that landed P03/P04/P07. |
 | `devlog/_future/0.99_future-deferred-ops/0.09.19-security-hardening/PRD.md` | deferred | Opt-in security hardening proposal |
 | `devlog/_future/0.99_future-deferred-ops/0.09.20-containerization/PRD.md` | deferred | Docker/containerization proposal |
@@ -128,6 +129,7 @@ graph TD
 | 0.26 | App weight reduction | Archived 260429; default entry weight reduced and Canvas Mode runtime safeguards verified |
 | TypeScript migration / #24 | Backend/CLI TypeScript source migration | Closed and archived; strict TypeScript gates are current code policy |
 | CLI parity follow-up / #61 | CLI generation option parity | Shipped 2026-05-11; provider/multimode/reference/favorites parity added and masked edit remains deferred to #31 |
+| CLI skill/capability discovery / #62 | Agent-facing CLI/package metadata | Active 2026-05-13; packaged skill, defaults, capabilities, and package include contract |
 | 0.09.19 | Security hardening | Deferred to `0.99_future` |
 | 0.09.20 (containerization) | Containerization | Deferred to `0.99_future` |
 | 0.10 | Feature expansion | Preset and compare MVP after current build is green |
@@ -186,6 +188,7 @@ Structure docs do not replace devlog. They normalize devlog decisions against th
 - 2026-05-06: Added `_plan/260503_error-toast-stack/` (shipped 2026-05-06, commit 78cb6d4). Marked #42 (`260429_issue42-gallery-current-session-default`), #43 (`260429_issue43-settings-persistence-audit`), and #49 (`260430_issue49-api-provider-responses`) as shipped, and #31 (`260430_issue31-provider-masked-edit`) as groundwork-shipped behind the `IMA2_OAUTH_MASKED_EDIT_ENABLED` flag. Noted that `_plan/260430_issue24-typescript-strict-cleanup/` shipped via PR #50 (commit 7367333) — split `lib/oauthProxy.ts` into `lib/oauthProxy/*` and added `lib/runtimeContext.ts` / `lib/responsesImageAdapter.ts` / `lib/providerOptions.ts` / `lib/errInfo.ts`. v1.1.9 (commit 6e82357) and v1.1.10 (commit 8855ef0) released.
 - 2026-05-10: Added `_plan/260510_issue61-cli-feature-parity-audit/` after auditing CLI web-search and current server/UI parity. #61 was opened for implementation. Updated #24 wording to closed/current rather than observation tracking.
 - 2026-05-11: Archived `_fin/260510_issue61-cli-feature-parity-audit/` after implementing CLI provider overrides, multimode refs/mode, multimode inflight help, server-side favorites listing, and CLI payload tests.
+- 2026-05-13: Added active `_plan/260513_issue62-cli-skill-capabilities/` for packaged agent skill and CLI capability/default discovery.
 
 Previous document: `[[06-infra-operations]]`
 

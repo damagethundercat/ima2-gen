@@ -23,6 +23,7 @@ const REQUIRED_SOURCE_PACK_FILES = [
   "lib/storageMigration.ts",
   "bin/ima2.ts",
   "bin/lib/storage-doctor.ts",
+  "skills/ima2/SKILL.md",
   "assets/card-news/templates/academy-lesson-square/template.json",
   "assets/card-news/templates/academy-lesson-square/base.png",
   "assets/card-news/templates/academy-lesson-square/preview.png",

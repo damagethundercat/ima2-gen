@@ -1,6 +1,6 @@
 # CLI Reference
 
-Every server route under `/api/*` has a CLI wrapper. The CLI is a thin shell over the local server, so most commands require a running `ima2x serve` (the few exceptions — `serve`, `setup`, `doctor`, `status`, `open`, `reset`, `config` — work without a live server).
+Every server route under `/api/*` has a CLI wrapper. The CLI is a thin shell over the local server, so most commands require a running `ima2x serve` (the few exceptions — `serve`, `setup`, `doctor`, `status`, `open`, `reset`, `config`, `skill`, `capabilities`, and local `defaults` inspection — work without a live server).
 
 For a quick start, see the [main README](../README.md). For endpoint mapping, see [API.md](API.md).
 
@@ -24,6 +24,21 @@ These work on most client commands:
 | `--server <url>` | Override server discovery (default uses `~/.ima2/server.json`, falls back to `IMA2_SERVER` env) |
 | `--json` | Emit machine-readable JSON instead of human-formatted output |
 | `-h`, `--help` | Show subcommand help |
+
+## Agent discovery
+
+Agents should start from the packaged skill and capability commands instead of guessing from scattered help text.
+
+| Command | Description |
+|---|---|
+| `ima2x skill` | Print the packaged Markdown skill from `skills/ima2/SKILL.md` |
+| `ima2x skill --json` | Print a JSON wrapper around the Markdown skill content |
+| `ima2x skill path` | Print the installed skill file path |
+| `ima2x capabilities --json` | Print supported commands, model/quality/reasoning values, and advisory limits |
+| `ima2x defaults --json` | Print the running server's effective model/reasoning defaults, falling back to local config when no server is reachable |
+| `ima2x defaults --local --json` | Print local effective defaults without contacting the server |
+
+`ima2x capabilities --json` separates supported and unsupported model ids. Agents should use only `valid.imageModels.supported` for generation/default choices. `limits.maxParallel` is advisory queue guidance; it is not a server-side concurrency semaphore.
 
 ## Generation
 
@@ -144,10 +159,23 @@ Card News requires the server to be started with `IMA2_CARD_NEWS=1` (or `feature
 | `ima2x config set <key> <value>` | Write to the file layer; rejects unknown keys, refuses auth keys (`provider`, `apiKey`), warns when an env var is overriding the same key, prints a restart-required note |
 | `ima2x config rm <key>` | Remove a key from the file layer |
 
+`defaults` is the agent-friendly wrapper for persistent image model and reasoning policy. It writes both OAuth and API-provider default keys so the user-facing "default model" stays one concept across provider paths.
+
+| Command | Description |
+|---|---|
+| `ima2x defaults` / `ima2x defaults ls` | Show default model/reasoning values |
+| `ima2x defaults --json` | Prefer running server defaults; fall back to local effective config |
+| `ima2x defaults --local --json` | Read local effective config only |
+| `ima2x defaults set model <model>` | Write `imageModels.default` and `apiProvider.defaultImageModel` |
+| `ima2x defaults set reasoning <effort>` | Write `imageModels.reasoningEffort` and `apiProvider.defaultReasoningEffort` |
+| `ima2x defaults reset model` | Remove persisted model defaults |
+| `ima2x defaults reset reasoning` | Remove persisted reasoning defaults |
+
 Allowed keys (whitelist):
 
 ```
 imageModels.default          imageModels.reasoningEffort
+apiProvider.defaultImageModel apiProvider.defaultReasoningEffort
 log.level                    features.cardNews
 cardNewsPlanner.{enabled,model,timeoutMs,deterministicFallback}
 comfy.{defaultUrl,uploadTimeoutMs,maxUploadBytes}
@@ -192,6 +220,10 @@ ima2x inflight ls --terminal
 ima2x storage status --json
 
 # Config
+ima2x skill --json
+ima2x capabilities --json
+ima2x defaults set model gpt-5.5
+ima2x defaults set reasoning high
 ima2x config set imageModels.reasoningEffort high
 ima2x config get log.level
 ima2x config ls --effective --json

@@ -67,6 +67,9 @@ The CLI surface was expanded to near-feature-parity with the server API in #45 (
 | `ima2 comfy <subcommand>` | `/api/comfy/export-image` | Export images to a ComfyUI bridge workspace |
 | `ima2 cardnews <subcommand>` | `/api/cardnews/*` | Dev-gated card-news templates/sets/jobs |
 | `ima2 config <get\|set>` | local | Read/write `~/.ima2/config.json` |
+| `ima2 defaults <subcommand>` | local or `/api/capabilities` | Inspect/change persistent model and reasoning defaults |
+| `ima2 capabilities` | `/api/capabilities` or local fallback | Print agent-facing capability metadata |
+| `ima2 skill` | local package | Print the packaged Markdown agent skill |
 | `ima2 inflight <subcommand>` | `/api/inflight*` | List/cancel running jobs (alias surface for `ps`/`cancel`) |
 | `ima2 storage <subcommand>` | `/api/storage*` | Storage status and open generated dir |
 | `ima2 billing` | `/api/billing` | Show billing/usage summary |
@@ -137,6 +140,22 @@ Provider override semantics: `api` forces the API-key Responses path, `oauth` fo
 | `--show-partial` | false | Print partial preview notices |
 
 CLI parity note (#61): `gen`, `edit`, `multimode`, and `node generate` expose request-level web-search toggles and provider overrides. `multimode` exposes references and prompt mode. `ima2 ls --favorites` uses `/api/history?favoritesOnly=1` so favorites are filtered before pagination. `ima2 edit --mask` remains deferred to #31 because the current mask path is guided edit, not guaranteed true masked/inpaint semantics.
+
+## Agent Discovery Commands
+
+Issue #62 adds an explicit agent discovery layer so agents no longer have to infer package behavior from many unrelated help screens.
+
+| Command | Role |
+|---|---|
+| `ima2 skill` | Prints `skills/ima2/SKILL.md`; this package skill should be preferred for ima2 work over generic OpenAI image-generation skills |
+| `ima2 skill --json` | Wraps the Markdown skill in `{ name, format, formatVersion, packageVersion, path, source, content }` |
+| `ima2 skill path` | Prints the resolved installed skill file path |
+| `ima2 capabilities --json` | Reports commands, supported/unsupported models, reasoning efforts, quality values, and limits |
+| `ima2 defaults --json` | Reads running server defaults when reachable; falls back to local effective config |
+| `ima2 defaults set model <model>` | Writes both `imageModels.default` and `apiProvider.defaultImageModel` |
+| `ima2 defaults set reasoning <effort>` | Writes both `imageModels.reasoningEffort` and `apiProvider.defaultReasoningEffort` |
+
+`ima2 capabilities` uses `/api/capabilities` when a running server is available, and otherwise emits local package metadata. `limits.maxParallel` is advisory queue guidance only; it does not imply a server-side semaphore.
 
 ## `ps` Options
 
@@ -210,6 +229,7 @@ Deferred:
 - 2026-04-30: Captured the CLI feature-parity #45 surface (multimode, node, session, history, prompt, annotate, canvas-versions, metadata, comfy, cardnews, config, inflight, storage, billing, providers, oauth) and documented the new `--reasoning-effort` and `--web-search` / `--no-web-search` flags on `gen`/`edit`. Switched all `bin/*` path references from `.js` to `.ts` source.
 - 2026-05-10: Re-audited CLI parity for #61. Web-search flags are wired for `gen`, `edit`, `multimode`, and `node generate`; follow-up work was planned for provider override, multimode refs/mode, `ps` multimode help, server-side favorites listing, masked edit CLI decision, and dedicated CLI payload tests.
 - 2026-05-11: Implemented the #61 CLI parity slice: provider overrides for generation commands, multimode refs/mode, multimode inflight help, server-side `ls --favorites`, and CLI feature-parity contract tests. `edit --mask` remains deferred to #31.
+- 2026-05-13: Added #62 agent discovery commands: packaged `skills/ima2/SKILL.md`, `ima2 skill`, `ima2 capabilities`, and `ima2 defaults`.
 
 Previous document: `[[01-file-function-map]]`
 

@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import { registerCapabilitiesRoutes } from "./capabilities.js";
 import { registerHealthRoutes } from "./health.js";
 import { registerHistoryRoutes } from "./history.js";
 import { registerSessionRoutes } from "./sessions.js";
@@ -21,6 +22,7 @@ import { type RouteRuntimeContext, requireRuntimeContext } from "../lib/runtimeC
 export function configureRoutes(app: Express, ctxRaw: RouteRuntimeContext) {
   const ctx = requireRuntimeContext(ctxRaw);
   registerHealthRoutes(app, ctx);
+  registerCapabilitiesRoutes(app, ctx);
   registerStorageRoutes(app, ctx);
   registerMetadataRoutes(app, ctx);
   registerHistoryRoutes(app, ctx);

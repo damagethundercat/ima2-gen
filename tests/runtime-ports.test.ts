@@ -11,20 +11,49 @@ import {
   parseOAuthReadyUrl,
 } from "../lib/runtimePorts.ts";
 
-function occupy(port) {
-  return new Promise<import("node:net").Server>((resolve) => {
-    const server = createServer().listen(port, "127.0.0.1", () => resolve(server));
+function closeServer(server: import("node:net").Server | null | undefined) {
+  return new Promise<void>((resolve) => {
+    if (!server) return resolve();
+    server.close(() => resolve());
   });
 }
 
+function occupy(port: number) {
+  return new Promise<import("node:net").Server>((resolve, reject) => {
+    const server = createServer()
+      .once("error", reject)
+      .listen(port, "127.0.0.1", () => {
+        server.off("error", reject);
+        resolve(server);
+      });
+  });
+}
+
+async function occupyBindablePair(startPort: number, attempts = 800) {
+  for (let offset = 0; offset < attempts; offset += 2) {
+    const base = startPort + offset;
+    let blocker: import("node:net").Server | null = null;
+    let probe: import("node:net").Server | null = null;
+    try {
+      blocker = await occupy(base);
+      probe = await occupy(base + 1);
+      await closeServer(probe);
+      return { base, blocker };
+    } catch {
+      await closeServer(probe);
+      await closeServer(blocker);
+    }
+  }
+  throw new Error(`No bindable test port pair found from ${startPort}`);
+}
+
 test("findAvailablePort skips occupied preferred port", async () => {
-  const base = 3900 + Math.floor(Math.random() * 400);
-  const blocker = await occupy(base);
+  const { base, blocker } = await occupyBindablePair(3900);
   try {
     const port = await findAvailablePort(base, { host: "127.0.0.1", maxAttempts: 2 });
     assert.equal(port, base + 1);
   } finally {
-    await new Promise((resolve) => blocker.close(resolve));
+    await closeServer(blocker);
   }
 });
 
@@ -35,8 +64,7 @@ test("local port fallback treats Windows reserved ports as skippable", () => {
 });
 
 test("listenWithPortFallback binds the next available port", async () => {
-  const base = 4300 + Math.floor(Math.random() * 400);
-  const blocker = await occupy(base);
+  const { base, blocker } = await occupyBindablePair(4300);
   const app = express();
   try {
     const server = await listenWithPortFallback(app, base, {
@@ -45,9 +73,9 @@ test("listenWithPortFallback binds the next available port", async () => {
       label: "test-server",
     }) as import("node:http").Server;
     assert.equal(getServerPort(server), base + 1);
-    await new Promise<void>((resolve) => server.close(() => resolve()));
+    await closeServer(server);
   } finally {
-    await new Promise((resolve) => blocker.close(resolve));
+    await closeServer(blocker);
   }
 });
 
