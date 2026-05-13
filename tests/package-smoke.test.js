@@ -95,9 +95,9 @@ describe("package smoke", () => {
   it("publishes the fork under scoped package and ima2x CLI names", () => {
     const pkg = JSON.parse(readFileSync(join(process.cwd(), "package.json"), "utf8"));
     assert.equal(pkg.name, "@damagethundercat/ima2-gen");
-    assert.deepEqual(pkg.bin, { ima2x: "./bin/ima2.js" });
+    assert.deepEqual(pkg.bin, { ima2x: "bin/ima2.js" });
     assert.equal(pkg.publishConfig?.access, "public");
-    assert.equal(pkg.repository?.url, "https://github.com/damagethundercat/ima2-gen.git");
+    assert.equal(pkg.repository?.url, "git+https://github.com/damagethundercat/ima2-gen.git");
   });
 
   it("includes release-critical source files in npm pack output", () => {

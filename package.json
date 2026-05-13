@@ -4,7 +4,7 @@
   "description": "Local OAuth image generation studio with classic and node workflows",
   "type": "module",
   "bin": {
-    "ima2x": "./bin/ima2.js"
+    "ima2x": "bin/ima2.js"
   },
   "scripts": {
     "start": "node bin/ima2.js serve",
@@ -39,7 +39,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/damagethundercat/ima2-gen.git"
+    "url": "git+https://github.com/damagethundercat/ima2-gen.git"
   },
   "publishConfig": {
     "access": "public"
