@@ -10,6 +10,7 @@ import { registerStorageRoutes } from "./storage.js";
 import { registerCardNewsRoutes } from "./cardNews.js";
 import { registerMetadataRoutes } from "./metadata.js";
 import { registerPromptRoutes } from "./prompts.js";
+import { registerPromptBuilderRoutes } from "./promptBuilder.js";
 import { registerPromptImportRoutes } from "./promptImport.js";
 import { registerAnnotationRoutes } from "./annotations.js";
 import { registerCanvasVersionRoutes } from "./canvasVersions.js";
@@ -34,5 +35,6 @@ export function configureRoutes(app: Express, ctxRaw: RouteRuntimeContext) {
   registerMultimodeRoutes(app, ctx);
   registerGenerateRoutes(app, ctx);
   registerPromptRoutes(app, ctx);
+  registerPromptBuilderRoutes(app, ctx);
   registerPromptImportRoutes(app, ctx);
 }

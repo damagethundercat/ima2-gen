@@ -44,6 +44,11 @@ interface PortOptions {
   onFallback?: (info: { label: string; requestedPort: number; actualPort: number }) => void;
 }
 
+export function isPortFallbackError(err: unknown) {
+  const code = (err as NodeJS.ErrnoException | undefined)?.code;
+  return code === "EADDRINUSE" || code === "EACCES";
+}
+
 export async function findAvailablePort(startPort: number, options: PortOptions = {}) {
   const maxAttempts = options.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
   const host = options.host;
@@ -53,7 +58,7 @@ export async function findAvailablePort(startPort: number, options: PortOptions 
       await checkPort(port, host);
       return port;
     } catch (err) {
-      if ((err as NodeJS.ErrnoException)?.code !== "EADDRINUSE") throw err;
+      if (!isPortFallbackError(err)) throw err;
     }
   }
   const err = new Error(`No available port found from ${startPort} to ${Number(startPort) + maxAttempts}`) as Error & { code?: string };
@@ -87,7 +92,7 @@ export async function listenWithPortFallback(app: ListenLike, startPort: number,
       }
       return server;
     } catch (err) {
-      if ((err as NodeJS.ErrnoException)?.code !== "EADDRINUSE") throw err;
+      if (!isPortFallbackError(err)) throw err;
       if (offset >= maxAttempts) {
         const exhausted = new Error(`${label} port range exhausted from ${startPort} to ${port}`) as Error & { code?: string; cause?: unknown };
         exhausted.code = "PORT_RANGE_EXHAUSTED";

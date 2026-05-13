@@ -1,6 +1,7 @@
 import {
   MAX_CUSTOM_SIZE_SLOTS,
   normalizeCustomSizeSlot,
+  removeCustomSizeSlot,
   replaceCustomSizeSlot,
   trimCustomSizeSlots,
   upsertCustomSizeSlot,
@@ -55,6 +56,7 @@ export function makeCustomSizeSlot(w: number, h: number, ratio?: string): Custom
 
 export {
   MAX_CUSTOM_SIZE_SLOTS,
+  removeCustomSizeSlot,
   replaceCustomSizeSlot,
   trimCustomSizeSlots,
   upsertCustomSizeSlot,

@@ -112,7 +112,7 @@ test("uploads one image multipart request to local ComfyUI", async () => withTem
   }
 }));
 
-test("rejects unsafe filenames, symlink escapes, spoofed images, and oversized files", async () => withTempDir(async (dir) => {
+test("rejects unsafe filenames, symlink escapes, spoofed images, and oversized files", async (t) => withTempDir(async (dir) => {
   const ctx = makeCtx(dir);
   const smallLimitCtx = makeCtx(dir, { comfy: { maxUploadBytes: 8 } });
   await writeFile(join(dir, "real.jpg"), JPG);
@@ -120,7 +120,14 @@ test("rejects unsafe filenames, symlink escapes, spoofed images, and oversized f
   await writeFile(join(dir, "fake.png"), Buffer.from("not an image"));
   await writeFile(join(dir, "too-big.png"), Buffer.concat([PNG, Buffer.alloc(32)]));
   await writeFile(join(tmpdir(), "ima2-outside.png"), PNG);
-  await symlink(join(tmpdir(), "ima2-outside.png"), join(dir, "escape.png"));
+  let symlinkCreated = true;
+  try {
+    await symlink(join(tmpdir(), "ima2-outside.png"), join(dir, "escape.png"));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "EPERM") throw error;
+    symlinkCreated = false;
+    t.diagnostic("skipping symlink escape assertion because this Windows environment cannot create file symlinks");
+  }
   await mkdir(join(dir, "folder"));
 
   await assert.rejects(() => exportImageToComfy(ctx, { filename: "../x.png" }), /Generated filename is invalid/);
@@ -128,7 +135,9 @@ test("rejects unsafe filenames, symlink escapes, spoofed images, and oversized f
   await assert.rejects(() => exportImageToComfy(ctx, { filename: "a%2Fb.png" }), /Generated filename is invalid/);
   await assert.rejects(() => exportImageToComfy(ctx, { filename: "missing.png" }), /not found/);
   await assert.rejects(() => exportImageToComfy(ctx, { filename: "folder" }), /invalid/);
-  await assert.rejects(() => exportImageToComfy(ctx, { filename: "escape.png" }), /invalid/);
+  if (symlinkCreated) {
+    await assert.rejects(() => exportImageToComfy(ctx, { filename: "escape.png" }), /invalid/);
+  }
   await assert.rejects(() => exportImageToComfy(ctx, { filename: "fake.png" }), /supported image/);
   await assert.rejects(() => exportImageToComfy(smallLimitCtx, { filename: "too-big.png" }), /too large/);
 

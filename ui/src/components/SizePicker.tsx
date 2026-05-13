@@ -1,4 +1,4 @@
-import { useEffect, useState, type KeyboardEvent } from "react";
+import { useEffect, useState, type KeyboardEvent, type MouseEvent } from "react";
 import { useAppStore } from "../store/useAppStore";
 import { OptionGroup, type OptionItem } from "./OptionGroup";
 import type { SizePreset } from "../types";
@@ -20,6 +20,7 @@ import {
 import {
   loadCustomSizeSlots,
   makeCustomSizeSlot,
+  removeCustomSizeSlot,
   replaceCustomSizeSlot,
   saveCustomSizeSlots,
   upsertCustomSizeSlot,
@@ -108,6 +109,16 @@ export function SizePicker() {
     setReplaceSlotId(slot.id);
   }
 
+  function deleteSlot(event: MouseEvent<HTMLButtonElement>, slotId: string) {
+    event.preventDefault();
+    event.stopPropagation();
+    const next = removeCustomSizeSlot(slots, slotId);
+    setSlotsAndPersist(next);
+    if (replaceSlotId === slotId) {
+      setReplaceSlotId(next[0]?.id ?? null);
+    }
+  }
+
   function applyRatio(ratio: CustomRatioPreset) {
     setActiveRatio(ratio.id);
     const next = sizeFromRatioPreset(ratio);
@@ -179,16 +190,29 @@ export function SizePicker() {
       {slots.length > 0 ? (
         <div className="option-row size-picker__slot-row">
           {slots.map((slot) => (
-            <button
+            <div
               key={slot.id}
-              type="button"
               className={`option-btn size-picker__slot${isCustom && customW === slot.w && customH === slot.h ? " active" : ""}`}
-              onClick={() => selectSlot(slot)}
             >
-              {slot.w}×{slot.h}
-              <br />
-              <span className="option-sub">{slot.ratio || t("size.customSlot")}</span>
-            </button>
+              <button
+                type="button"
+                className="size-picker__slot-main"
+                onClick={() => selectSlot(slot)}
+              >
+                {slot.w}×{slot.h}
+                <br />
+                <span className="option-sub">{slot.ratio || t("size.customSlot")}</span>
+              </button>
+              <button
+                type="button"
+                className="size-picker__slot-delete"
+                onClick={(event) => deleteSlot(event, slot.id)}
+                aria-label={t("size.deleteCustomSlot", { size: `${slot.w}x${slot.h}` })}
+                title={t("size.deleteCustomSlot", { size: `${slot.w}x${slot.h}` })}
+              >
+                ×
+              </button>
+            </div>
           ))}
         </div>
       ) : null}

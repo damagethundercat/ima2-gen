@@ -1,6 +1,6 @@
 import { spawnBin } from "../bin/lib/platform.js";
 import { config } from "../config.js";
-import { parseLocalhostPortFromUrl, parseOAuthReadyUrl } from "./runtimePorts.js";
+import { findAvailablePort, parseLocalhostPortFromUrl, parseOAuthReadyUrl } from "./runtimePorts.js";
 import type { ChildProcess } from "node:child_process";
 
 export function startOAuthProxy(options: any = {}) {
@@ -10,9 +10,25 @@ export function startOAuthProxy(options: any = {}) {
   let stopping = false;
   let restartTimer: NodeJS.Timeout | null = null;
 
-  const spawnProxy = () => {
-    console.log(`Starting openai-oauth on port ${oauthPort}...`);
-    const child = spawnBin("npx", ["openai-oauth", "--port", String(oauthPort)], {
+  const spawnProxy = async () => {
+    let launchPort = oauthPort;
+    try {
+      launchPort = await findAvailablePort(oauthPort, {
+        host: "127.0.0.1",
+        maxAttempts: options.maxPortAttempts ?? 80,
+      });
+    } catch (error) {
+      options.onExit?.({ code: "PORT_UNAVAILABLE", error });
+      console.error(`[oauth] failed to find an available local port: ${error instanceof Error ? error.message : String(error)}`);
+      if (!stopping) restartTimer = setTimeout(() => void spawnProxy(), restartDelayMs);
+      return;
+    }
+
+    if (launchPort !== oauthPort) {
+      console.log(`[oauth] requested port ${oauthPort}, preselected available port ${launchPort}`);
+    }
+    console.log(`Starting openai-oauth on port ${launchPort}...`);
+    const child = spawnBin("npx", ["openai-oauth", "--port", String(launchPort)], {
       stdio: ["ignore", "pipe", "pipe"],
       env: { ...process.env },
     });
@@ -43,11 +59,11 @@ export function startOAuthProxy(options: any = {}) {
       if (stopping) return;
       options.onExit?.({ code });
       console.log(`[oauth] exited with code ${code}, restarting in ${Math.round(restartDelayMs / 1000)}s...`);
-      restartTimer = setTimeout(spawnProxy, restartDelayMs);
+      restartTimer = setTimeout(() => void spawnProxy(), restartDelayMs);
     });
   };
 
-  spawnProxy();
+  void spawnProxy();
 
   return {
     get child() {

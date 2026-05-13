@@ -103,17 +103,14 @@ describe("gallery navigation UX contract", () => {
     assert.match(css, /\.card-news-deck[\s\S]*overscroll-behavior-inline: contain/);
   });
 
-  it("renders the compact gallery strip with rail and horizontal layout options", () => {
+  it("keeps the compact gallery strip while removing layout placement from settings", () => {
     const app = readSource("ui/src/App.tsx");
     const sidebar = readSource("ui/src/components/Sidebar.tsx");
     const historyStrip = readSource("ui/src/components/HistoryStrip.tsx");
     const settings = readSource("ui/src/components/SettingsWorkspace.tsx");
-    const toggle = readSource("ui/src/components/HistoryStripLayoutToggle.tsx");
     const store = readSource("ui/src/store/useAppStore.ts");
     const registry = readSource("ui/src/store/persistenceRegistry.ts");
     const types = readSource("ui/src/types.ts");
-    const ko = readSource("ui/src/i18n/ko.json");
-    const en = readSource("ui/src/i18n/en.json");
     const css = readSource("ui/src/index.css");
     const appRule = /\.app\s*\{[^}]*\}/s.exec(css)?.[0] ?? "";
     const horizontalAppRule = /\.app--history-horizontal\s*\{[^}]*\}/s.exec(css)?.[0] ?? "";
@@ -137,8 +134,10 @@ describe("gallery navigation UX contract", () => {
     assert.match(app, /app--history-sidebar/);
     assert.match(app, /data-history-strip-layout=\{historyStripLayout\}/);
     assert.match(app, /import \{ MobileAppBar \} from "\.\/components\/MobileAppBar"/);
-    assert.match(app, /<Sidebar \/>\s*<MobileAppBar \/>\s*<HistoryStrip \/>/);
-    assert.doesNotMatch(sidebar, /HistoryStrip/);
+    assert.match(app, /const showHistoryStrip = uiMode === "card-news" \|\| isMobile/);
+    assert.match(app, /<Sidebar \/>\s*<MobileAppBar \/>\s*\{showHistoryStrip \? <HistoryStrip \/> : null\}/);
+    assert.match(sidebar, /SidebarHistory/);
+    assert.doesNotMatch(sidebar, /<HistoryStrip/);
 
     assert.match(appRule, /--gallery-rail-w:\s*clamp\(61px,\s*6vw,\s*95px\)/);
     assert.match(appRule, /grid-template-columns:\s*260px var\(--gallery-rail-w\) minmax\(0,\s*1fr\) auto/);
@@ -146,7 +145,7 @@ describe("gallery navigation UX contract", () => {
     assert.match(horizontalAppRule, /grid-template-rows:\s*var\(--history-strip-h\) minmax\(0,\s*1fr\)/);
     assert.match(sidebarAppRule, /grid-template-columns:\s*260px minmax\(0,\s*1fr\) auto/);
     assert.match(sidebarAppRule, /grid-template-rows:\s*minmax\(0,\s*1fr\) var\(--history-strip-h\)/);
-    assert.match(rightPanelRule, /width:\s*266px/);
+    assert.match(rightPanelRule, /width:\s*clamp\(300px,\s*18vw,\s*360px\)/);
     assert.match(historyRule, /flex-direction:\s*column/);
     assert.match(historyRule, /overflow-y:\s*auto/);
     assert.match(historyRule, /overflow-x:\s*hidden/);
@@ -178,12 +177,9 @@ describe("gallery navigation UX contract", () => {
     assert.match(historyStrip, /function getHistoryItemKey\(item: GenerateItem\): string/);
     assert.match(historyStrip, /scrollIntoView\(\{ block: "nearest", inline: "nearest" \}\)/);
     assert.match(historyStrip, /ref=\{\(node\) => \{/);
-    assert.match(settings, /HistoryStripLayoutToggle/);
-    assert.match(toggle, /history-layout-toggle/);
-    assert.match(toggle, /aria-pressed=\{layout === option\}/);
-    assert.match(toggle, /\["rail", "horizontal", "sidebar"\]/);
-    assert.match(en, /historyStripLayoutTitle/);
-    assert.match(ko, /historyStripLayoutTitle/);
+    assert.doesNotMatch(settings, /HistoryStripLayoutToggle/);
+    assert.doesNotMatch(settings, /historyStripLayoutTitle/);
+    assert.doesNotMatch(settings, /historyStripLayoutBody/);
   });
 
   it("does not introduce backend coupling for navigation UX", () => {

@@ -63,6 +63,57 @@ describe("multimode frontend UX contract", () => {
     assert.match(store, /sequenceStatus: it\.sequenceStatus \?\? null/);
   });
 
+  it("promotes multimode slot and history selections back to the large image viewer", () => {
+    const store = readSource("ui/src/store/useAppStore.ts");
+    const preview = readSource("ui/src/components/MultimodeSequencePreview.tsx");
+    const selectHistoryBody = store.split(/selectHistory:\s*\(item\)\s*=>\s*\{/)[1] ?? "";
+
+    assert.match(preview, /selectHistory\(image\)/);
+    assert.match(selectHistoryBody, /multimodePreviewFlightId:\s*null/);
+  });
+
+  it("groups completed multimode history into sequence cards that reopen the sequence preview", () => {
+    const store = readSource("ui/src/store/useAppStore.ts");
+    const sidebar = readSource("ui/src/components/SidebarHistory.tsx");
+    const css = readSource("ui/src/index.css");
+
+    assert.match(store, /showHistorySequence:\s*\(sequenceId: string\) => void/);
+    assert.match(store, /showHistorySequence:\s*\(sequenceId\) => \{/);
+    assert.match(store, /const previewId = `history:\$\{sequenceId\}`/);
+    assert.match(store, /multimodePreviewFlightId:\s*previewId/);
+    assert.match(sidebar, /function groupSidebarHistoryEntries/);
+    assert.match(sidebar, /function getSequenceThumbSlotCount/);
+    assert.match(sidebar, /type:\s*"sequence"/);
+    assert.match(sidebar, /showHistorySequence\(entry\.sequenceId\)/);
+    assert.match(sidebar, /sidebar-history__sequence/);
+    assert.match(sidebar, /sidebar-history__sequence-grid count-\$\{getSequenceThumbSlotCount\(entry\.items\.length\)\}/);
+    assert.match(sidebar, /Array\.from\(\{ length: getSequenceThumbSlotCount\(entry\.items\.length\) \}/);
+    assert.match(css, /\.sidebar-history__sequence\s*\{/);
+    assert.match(css, /\.sidebar-history__sequence-grid\s*\{/);
+    assert.match(css, /\.sidebar-history__sequence-grid\.count-3,\s*[\s\S]*?\.sidebar-history__sequence-grid\.count-4\s*\{[\s\S]*?grid-template-rows:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/);
+  });
+
+  it("sizes the multimode sequence preview as a primary canvas surface", () => {
+    const css = readSource("ui/src/index.css");
+
+    assert.match(css, /\.multimode-sequence \{[\s\S]*?width:\s*min\(100%,\s*1040px\)/);
+    assert.match(css, /\.multimode-sequence \{[\s\S]*?height:\s*100%/);
+    assert.match(css, /\.multimode-sequence__grid \{[\s\S]*?grid-template-columns:\s*repeat\(2,\s*minmax\(220px,\s*1fr\)\)/);
+    assert.match(css, /\.multimode-sequence__grid \{[\s\S]*?grid-auto-rows:\s*minmax\(0,\s*1fr\)/);
+    assert.match(css, /\.multimode-sequence__grid\.count-4\s*\{[\s\S]*?grid-template-rows:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/);
+    assert.match(css, /\.multimode-sequence__slot \{[\s\S]*?min-height:\s*0/);
+    assert.match(css, /\.multimode-sequence__slot \{[\s\S]*?aspect-ratio:\s*6\s*\/\s*5/);
+    assert.match(css, /\.multimode-sequence__slot img \{[\s\S]*?object-fit:\s*cover/);
+  });
+
+  it("keeps the new image plus card active only for an actual draft session", () => {
+    const sidebar = readSource("ui/src/components/Sidebar.tsx");
+
+    assert.match(sidebar, /const currentImage = useAppStore\(\(s\) => s\.currentImage\)/);
+    assert.match(sidebar, /const multimodePreviewFlightId = useAppStore\(\(s\) => s\.multimodePreviewFlightId\)/);
+    assert.match(sidebar, /const isActive = currentImage === null && multimodePreviewFlightId === null/);
+  });
+
   it("reconciles multimode in-flight phase and treats user cancellation as canceled", () => {
     const store = readSource("ui/src/store/useAppStore.ts");
     const api = readSource("ui/src/lib/api.ts");

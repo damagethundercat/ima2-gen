@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from "react";
 import { Sidebar } from "./components/Sidebar";
 import { Canvas } from "./components/Canvas";
+import { ClassicWorkspace } from "./components/ClassicWorkspace";
 import { RightPanel } from "./components/RightPanel";
 import { HistoryStrip } from "./components/HistoryStrip";
 import { Toast } from "./components/Toast";
@@ -59,6 +60,7 @@ export default function App() {
       uiModeRaw === "node" && ENABLE_NODE_MODE ? "node" :
         "classic";
   const isMobile = useIsMobile();
+  const showHistoryStrip = uiMode === "card-news" || isMobile;
 
   useBrowserAttentionBadge(unseenGeneratedCount);
 
@@ -113,9 +115,9 @@ export default function App() {
     <>
       <div
         className={`app${settingsOpen ? " app--settings-open" : ""}${
-          historyStripLayout === "horizontal" ? " app--history-horizontal" : ""
+          showHistoryStrip && historyStripLayout === "horizontal" ? " app--history-horizontal" : ""
         }${
-          historyStripLayout === "sidebar" ? " app--history-sidebar" : ""
+          showHistoryStrip && historyStripLayout === "sidebar" ? " app--history-sidebar" : ""
         }`}
         data-theme-mode={resolvedTheme}
         data-theme-family={themeFamily}
@@ -125,12 +127,12 @@ export default function App() {
       >
         <Sidebar />
         <MobileAppBar />
-        <HistoryStrip />
+        {showHistoryStrip ? <HistoryStrip /> : null}
         <Suspense fallback={<WorkspaceFallback />}>
           {settingsOpen ? (
             <LazySettingsWorkspace />
           ) : uiMode === "classic" ? (
-            <Canvas />
+            isMobile ? <Canvas /> : <ClassicWorkspace />
           ) : uiMode === "node" ? (
             <LazyNodeCanvas />
           ) : uiMode === "card-news" ? (

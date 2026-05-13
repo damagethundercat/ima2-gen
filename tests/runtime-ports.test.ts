@@ -5,6 +5,7 @@ import { createServer } from "node:net";
 import {
   findAvailablePort,
   getServerPort,
+  isPortFallbackError,
   listenWithPortFallback,
   parseLocalhostPortFromUrl,
   parseOAuthReadyUrl,
@@ -25,6 +26,12 @@ test("findAvailablePort skips occupied preferred port", async () => {
   } finally {
     await new Promise((resolve) => blocker.close(resolve));
   }
+});
+
+test("local port fallback treats Windows reserved ports as skippable", () => {
+  assert.equal(isPortFallbackError(Object.assign(new Error("busy"), { code: "EADDRINUSE" })), true);
+  assert.equal(isPortFallbackError(Object.assign(new Error("denied"), { code: "EACCES" })), true);
+  assert.equal(isPortFallbackError(Object.assign(new Error("bad host"), { code: "EADDRNOTAVAIL" })), false);
 });
 
 test("listenWithPortFallback binds the next available port", async () => {

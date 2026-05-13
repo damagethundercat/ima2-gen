@@ -9,6 +9,7 @@ function truncate(s: string, max = 28) {
 export function InFlightList() {
   const inFlight = useAppStore((s) => s.inFlight);
   const cancelInFlightJob = useAppStore((s) => s.cancelInFlightJob);
+  const showInFlightJob = useAppStore((s) => s.showInFlightJob);
   const { t } = useI18n();
 
   const phaseLabels: Record<string, string> = {
@@ -32,10 +33,17 @@ export function InFlightList() {
             className="in-flight-item"
             data-phase={f.phase ?? "queued"}
             title={promptLabel}
-            aria-label={`${phaseLabel}: ${promptLabel}`}
           >
-            <span className="in-flight-prompt">{truncate(f.prompt)}</span>
-            <span className="in-flight-phase">{phaseLabel}</span>
+            <button
+              type="button"
+              className="in-flight-open"
+              onClick={() => showInFlightJob(f.id)}
+              aria-label={`${phaseLabel}: ${promptLabel}`}
+            >
+              <span className="in-flight-prompt">{truncate(f.prompt)}</span>
+              <span className="in-flight-phase">{phaseLabel}</span>
+              <span className="in-flight-spinner" aria-hidden="true" />
+            </button>
             <button
               type="button"
               className="in-flight-cancel"
@@ -44,9 +52,8 @@ export function InFlightList() {
               aria-label={t("inflight.cancelAria", { prompt: promptLabel })}
               title={t("common.cancel")}
             >
-              ×
+              x
             </button>
-            <span className="in-flight-spinner" aria-hidden="true" />
           </li>
         );
       })}

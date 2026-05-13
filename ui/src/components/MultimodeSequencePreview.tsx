@@ -2,6 +2,24 @@ import { useAppStore } from "../store/useAppStore";
 import { useI18n } from "../i18n";
 import type { GenerateItem } from "../types";
 
+function getSequenceSlotImage(images: GenerateItem[], slotIndex: number): GenerateItem | undefined {
+  const indexed = images.find((image) => image.sequenceIndex === slotIndex + 1);
+  if (indexed) return indexed;
+  if (images.some((image) => image.sequenceIndex != null)) return undefined;
+  return images[slotIndex];
+}
+
+function getSequenceSlotPartial(
+  partials: Array<{ image: string; index?: number | null }>,
+  slotIndex: number,
+): { image: string; index?: number | null } | undefined {
+  return partials.find((item) =>
+    item.index === slotIndex ||
+    item.index === slotIndex + 1 ||
+    item.index == null,
+  );
+}
+
 export function MultimodeSequencePreview() {
   const sequence = useAppStore((s) => {
     const id = s.multimodePreviewFlightId;
@@ -10,24 +28,19 @@ export function MultimodeSequencePreview() {
   const cancelMultimode = useAppStore((s) => s.cancelMultimode);
   const activeGenerations = useAppStore((s) => s.activeGenerations);
   const selectHistory = useAppStore((s) => s.selectHistory);
+  const trashHistoryItem = useAppStore((s) => s.trashHistoryItem);
   const currentImage = useAppStore((s) => s.currentImage);
-  const openCanvas = useAppStore((s) => s.openCanvas);
   const { t } = useI18n();
 
   const handleSlotClick = (image: GenerateItem) => {
     selectHistory(image);
   };
 
-  const handleSlotDoubleClick = (image: GenerateItem) => {
-    selectHistory(image);
-    openCanvas();
-  };
-
   if (!sequence) return null;
 
   const slots = Array.from({ length: sequence.requested }, (_, index) => {
-    const image = sequence.images[index];
-    const partial = sequence.partials.find((item) => item.index === index || item.index == null);
+    const image = getSequenceSlotImage(sequence.images, index);
+    const partial = getSequenceSlotPartial(sequence.partials, index);
     return { index, image, partial };
   });
 
@@ -58,7 +71,6 @@ export function MultimodeSequencePreview() {
               key={image?.filename ?? index}
               className={`multimode-sequence__slot${image ? " done" : ""}${isActive ? " active" : ""}`}
               onClick={image ? () => handleSlotClick(image) : undefined}
-              onDoubleClick={image ? () => handleSlotDoubleClick(image) : undefined}
               role={image ? "button" : undefined}
               tabIndex={image ? 0 : undefined}
               onKeyDown={
@@ -76,7 +88,22 @@ export function MultimodeSequencePreview() {
                 {t("multimode.stageLabel", { index: index + 1 })}
               </div>
               {image ? (
-                <img src={image.url ?? image.image} alt={t("canvas.resultAlt")} />
+                <>
+                  <img src={image.url ?? image.image} alt={t("canvas.resultAlt")} />
+                  <button
+                    type="button"
+                    className="multimode-sequence__delete"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      void trashHistoryItem(image);
+                    }}
+                    aria-label={t("multimode.deleteImageAria", { index: index + 1 })}
+                    title={t("multimode.deleteImageAria", { index: index + 1 })}
+                  >
+                    ×
+                  </button>
+                </>
               ) : partial ? (
                 <img src={partial.image} alt={t("multimode.partialAlt")} />
               ) : (

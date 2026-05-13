@@ -5,9 +5,14 @@ import { createServer } from "node:http";
 import sharp from "sharp";
 import { registerMetadataRoutes } from "../routes/metadata.ts";
 import { embedImageMetadata } from "../lib/imageMetadataStore.ts";
+import { findAvailablePort } from "../lib/runtimePorts.ts";
 
 async function listen(server) {
-  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = await findAvailablePort(4400 + Math.floor(Math.random() * 400), {
+    host: "127.0.0.1",
+    maxAttempts: 50,
+  });
+  await new Promise((resolve) => server.listen(port, "127.0.0.1", resolve));
   return `http://127.0.0.1:${server.address().port}`;
 }
 

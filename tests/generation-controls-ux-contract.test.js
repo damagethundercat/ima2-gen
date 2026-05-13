@@ -10,21 +10,55 @@ function readSource(path) {
 }
 
 describe("generation controls custom plus UX contract", () => {
-  it("keeps the right panel as the generation control home", () => {
+  it("moves classic desktop controls into a collapsible right sidebar stack", () => {
+    const workspace = readSource("ui/src/components/ClassicWorkspace.tsx");
     const rightPanel = readSource("ui/src/components/RightPanel.tsx");
     const controls = readSource("ui/src/components/GenerationControlsPanel.tsx");
 
     assert.match(rightPanel, /import \{ GenerationControlsPanel \} from "\.\/GenerationControlsPanel"/);
+    assert.match(rightPanel, /import \{ PromptBuilderPanel \} from "\.\/PromptBuilderPanel"/);
     assert.match(rightPanel, /lazy\(\(\) =>\s*import\("\.\/PromptLibraryPanel"\)/);
     assert.match(rightPanel, /<GenerationControlsPanel \/>/);
+    assert.match(rightPanel, /right-panel-builder-stack/);
+    assert.match(rightPanel, /<PromptBuilderPanel variant="sidebar" \/>[\s\S]*<GenerationControlsPanel variant="sidebar" \/>/);
+    assert.match(rightPanel, /usePromptBuilderHome/);
     assert.match(rightPanel, /promptLibraryOpen/);
     assert.match(rightPanel, /<LazyPromptLibraryPanel variant="embedded" \/>/);
     assert.match(rightPanel, /right-panel-tabs/);
+    assert.match(workspace, /<PromptComposer variant="bottom" \/>/);
+    assert.doesNotMatch(workspace, /GenerationControlsPanel/);
+    assert.doesNotMatch(workspace, /ResultDockPanel/);
     assert.doesNotMatch(rightPanel, /COUNT_ITEMS/);
+    assert.match(controls, /type GenerationControlsPanelProps/);
+    assert.match(controls, /variant\?: "panel" \| "compact" \| "sidebar"/);
+    assert.match(controls, /generation-controls--compact/);
+    assert.match(controls, /generation-controls--sidebar/);
+    assert.match(controls, /import \{ ResultDockPanel \} from "\.\/ResultDockPanel"/);
+    assert.match(controls, /<ResultDockPanel variant="compact" \/>/);
+    assert.match(controls, /generation-controls__compact-layout/);
+    assert.match(controls, /generation-controls__sidebar-body/);
+    assert.match(controls, /generation-controls__settings-grid/);
+    assert.match(controls, /generation-controls__section/);
     assert.match(controls, /import \{ SizePicker \} from "\.\/SizePicker"/);
     assert.match(controls, /import \{ CountPicker \} from "\.\/CountPicker"/);
     assert.match(controls, /<SizePicker \/>/);
     assert.match(controls, /<CountPicker \/>/);
+
+    const actions = readSource("ui/src/components/ResultActions.tsx");
+    assert.match(actions, /const openExternal/);
+    assert.match(actions, /window\.open\(imageUrl, "_blank", "noopener,noreferrer"\)/);
+    assert.match(actions, /t\("result\.openExternal"\)/);
+
+    const css = readSource("ui/src/index.css");
+    assert.match(css, /\.right-panel-builder-stack\s*\{[\s\S]*grid-template-rows:\s*minmax\(0,\s*1fr\)\s*auto/);
+    assert.match(css, /\.generation-controls__compact-layout\s*\{[\s\S]*grid-template-columns:\s*minmax\(260px,\s*380px\)\s*minmax\(0,\s*1fr\)/);
+    assert.match(css, /\.generation-controls__settings-grid\s*\{[\s\S]*grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(160px,\s*1fr\)\)/);
+    assert.match(css, /\.generation-controls__sidebar-body\s*\{/);
+    assert.match(css, /\.generation-controls--sidebar \.generation-controls__settings-grid\s*\{[\s\S]*grid-template-columns:\s*1fr/);
+    assert.match(css, /\.generation-controls--compact \.result-dock/);
+    assert.match(css, /\.generation-controls--sidebar \.result-dock/);
+    assert.match(css, /\.generation-controls__section--wide/);
+    assert.match(css, /\.generation-controls__section--full/);
   });
 
   it("preserves the existing size preset grid and visible auto option", () => {
@@ -96,13 +130,15 @@ describe("generation controls custom plus UX contract", () => {
     assert.match(store, /saveGenerationDefaultsPatch\(\{ count: next \}\);/);
   });
 
-  it("persists prompt and generation presets across refresh", () => {
+  it("persists generation presets across refresh while new drafts start empty", () => {
     const store = readSource("ui/src/store/useAppStore.ts");
 
     assert.match(store, /GENERATION_DEFAULTS_STORAGE_KEY = "ima2\.generationDefaults"/);
     assert.match(store, /function loadGenerationDefaults\(\): GenerationDefaults/);
     assert.match(store, /function saveGenerationDefaultsPatch\(patch: GenerationDefaults\): void/);
-    assert.match(store, /prompt: storedGenerationDefaults\.prompt \?\? ""/);
+    assert.match(store, /prompt:\s*""/);
+    assert.match(store, /insertedPrompts:\s*\[\]/);
+    assert.doesNotMatch(store, /prompt: storedGenerationDefaults\.prompt \?\? ""/);
     assert.match(store, /sizePreset: storedGenerationDefaults\.sizePreset \?\? "1024x1024"/);
     assert.match(store, /setPrompt: \(prompt\) => \{[\s\S]*?saveGenerationDefaultsPatch\(\{ prompt \}\);/);
     assert.match(store, /setSizePreset: \(sizePreset\) => \{[\s\S]*?saveGenerationDefaultsPatch\(\{ sizePreset \}\);/);

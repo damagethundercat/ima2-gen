@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ClipboardEvent, type DragEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ClipboardEvent, type DragEvent, type WheelEvent } from "react";
 import { useAppStore } from "../store/useAppStore";
 import { useI18n } from "../i18n";
 import { SavePromptPopover } from "./SavePromptPopover";
@@ -6,12 +6,21 @@ import { WebSearchToggle } from "./WebSearchToggle";
 
 const MAX_REFS = 5;
 
-export function PromptComposer() {
+type PromptComposerProps = {
+  variant?: "panel" | "bottom";
+};
+
+export function PromptComposer({ variant = "panel" }: PromptComposerProps) {
   const prompt = useAppStore((s) => s.prompt);
   const setPrompt = useAppStore((s) => s.setPrompt);
   const insertedPrompts = useAppStore((s) => s.insertedPrompts);
   const removeInsertedPrompt = useAppStore((s) => s.removeInsertedPromptFromComposer);
+  const moveInsertedPrompt = useAppStore((s) => s.moveInsertedPromptInComposer);
   const generate = useAppStore((s) => s.generate);
+  const activeGenerations = useAppStore((s) => s.activeGenerations);
+  const setPromptLibraryOpen = useAppStore((s) => s.setPromptLibraryOpen);
+  const rightPanelOpen = useAppStore((s) => s.rightPanelOpen);
+  const toggleRightPanel = useAppStore((s) => s.toggleRightPanel);
   const { t } = useI18n();
 
   const refs = useAppStore((s) => s.referenceImages);
@@ -23,6 +32,7 @@ export function PromptComposer() {
 
   const fileInput = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const promptFlowRef = useRef<HTMLDivElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [saveOpen, setSaveOpen] = useState(false);
   const promptMode = useAppStore((s) => s.promptMode);
@@ -30,6 +40,23 @@ export function PromptComposer() {
   const multimode = useAppStore((s) => s.multimode);
   const multimodeMaxImages = useAppStore((s) => s.multimodeMaxImages);
   const isDirectMode = promptMode === "direct";
+  const isBottomComposer = variant === "bottom";
+  const loading = activeGenerations > 0;
+  const generateLabel = loading
+    ? t("generate.buttonLoading", { n: activeGenerations })
+    : t("generate.button");
+  const beforePrompts = insertedPrompts.filter((item) => item.placement !== "after");
+  const afterPrompts = insertedPrompts.filter((item) => item.placement === "after");
+  const visualPromptIds = [
+    ...beforePrompts.map((item) => item.id),
+    "__main_prompt__",
+    ...afterPrompts.map((item) => item.id),
+  ];
+  const canMovePromptBlock = (id: string, direction: "up" | "down"): boolean => {
+    const index = visualPromptIds.indexOf(id);
+    if (index < 0) return false;
+    return direction === "up" ? index > 0 : index < visualPromptIds.length - 1;
+  };
 
   const canAddMore = refs.length < MAX_REFS;
   const placeholder = multimode
@@ -89,6 +116,31 @@ export function PromptComposer() {
     void addReferences(files.slice(0, room));
   };
 
+  const openPromptLibrary = () => {
+    if (!rightPanelOpen) toggleRightPanel();
+    setPromptLibraryOpen(true);
+  };
+
+  const canScrollByWheel = (element: HTMLElement, deltaY: number) => {
+    if (element.scrollHeight <= element.clientHeight) return false;
+    if (deltaY < 0) return element.scrollTop > 0;
+    if (deltaY > 0) return element.scrollTop + element.clientHeight < element.scrollHeight - 1;
+    return false;
+  };
+
+  const handlePromptFlowWheel = (event: WheelEvent<HTMLDivElement>) => {
+    if (!isBottomComposer) return;
+    const target = event.target instanceof Element ? event.target : null;
+    const textarea = target?.closest<HTMLTextAreaElement>(".composer__textarea") ?? null;
+    if (textarea && canScrollByWheel(textarea, event.deltaY)) return;
+
+    const flow = promptFlowRef.current;
+    if (!flow || flow.scrollHeight <= flow.clientHeight) return;
+    const previousTop = flow.scrollTop;
+    flow.scrollTop += event.deltaY;
+    if (flow.scrollTop !== previousTop) event.preventDefault();
+  };
+
   useLayoutEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
@@ -114,7 +166,7 @@ export function PromptComposer() {
 
   return (
     <div
-      className={`composer${dragOver ? " composer--drag" : ""}${isDirectMode && !multimode ? " composer--direct" : ""}${multimode ? " composer--multimode" : ""}`}
+      className={`composer composer--${variant}${dragOver ? " composer--drag" : ""}${isDirectMode && !multimode ? " composer--direct" : ""}${multimode ? " composer--multimode" : ""}`}
       role="group"
       aria-label={
         multimode
@@ -126,7 +178,8 @@ export function PromptComposer() {
       onDragLeave={onDragLeave}
       onPaste={onPaste}
     >
-      <div className="composer__header">
+      <div className="composer__content-rail">
+        <div className="composer__header">
         <span className="section-title composer__label">{t("prompt.label")}</span>
         <div className="composer__header-meta">
           {multimode && (
@@ -165,38 +218,113 @@ export function PromptComposer() {
         </div>
       )}
 
-      {insertedPrompts.length > 0 && (
-        <div className="composer__prompt-chips">
-          {insertedPrompts.map((item) => (
-            <div key={item.id} className="composer__prompt-chip" title={item.name}>
-              <span className="composer__prompt-chip-plus" aria-hidden="true">+</span>
-              <span className="composer__prompt-chip-title">{item.name}</span>
-              <button
-                type="button"
-                className="composer__prompt-chip-remove"
-                onClick={() => removeInsertedPrompt(item.id)}
-                aria-label={t("promptLibrary.removeInserted", { name: item.name })}
-              >
-                ×
-              </button>
+      <div
+        ref={promptFlowRef}
+        className="composer__prompt-flow"
+        aria-label={t("promptLibrary.finalPromptOrder")}
+        onWheel={handlePromptFlowWheel}
+      >
+        <div className="composer__prompt-flow-list">
+          {beforePrompts.map((item) => (
+            <div key={item.id} className="composer__prompt-block" title={item.name}>
+              <span className="composer__prompt-block-title">{item.name}</span>
+              <div className="composer__prompt-block-controls">
+                <button
+                  type="button"
+                  className="composer__prompt-block-action"
+                  onClick={() => moveInsertedPrompt(item.id, "up")}
+                  disabled={!canMovePromptBlock(item.id, "up")}
+                  aria-label={t("promptLibrary.moveBlockUp", { name: item.name })}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M12 19V5" />
+                    <path d="m5 12 7-7 7 7" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  className="composer__prompt-block-action"
+                  onClick={() => moveInsertedPrompt(item.id, "down")}
+                  disabled={!canMovePromptBlock(item.id, "down")}
+                  aria-label={t("promptLibrary.moveBlockDown", { name: item.name })}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M12 5v14" />
+                    <path d="m19 12-7 7-7-7" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  className="composer__prompt-block-remove"
+                  onClick={() => removeInsertedPrompt(item.id)}
+                  aria-label={t("promptLibrary.removeInserted", { name: item.name })}
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          ))}
+
+          <div className="composer__prompt-block composer__prompt-block--main">
+            <div className="composer__prompt-block-main-header">
+              <span className="composer__prompt-block-title">{t("promptLibrary.mainPromptBlock")}</span>
+            </div>
+            <textarea
+              ref={textareaRef}
+              className="prompt-area composer__textarea"
+              value={prompt}
+              placeholder={placeholder}
+              onChange={(e) => setPrompt(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                  e.preventDefault();
+                  void generate();
+                }
+              }}
+            />
+          </div>
+
+          {afterPrompts.map((item) => (
+            <div key={item.id} className="composer__prompt-block" title={item.name}>
+              <span className="composer__prompt-block-title">{item.name}</span>
+              <div className="composer__prompt-block-controls">
+                <button
+                  type="button"
+                  className="composer__prompt-block-action"
+                  onClick={() => moveInsertedPrompt(item.id, "up")}
+                  disabled={!canMovePromptBlock(item.id, "up")}
+                  aria-label={t("promptLibrary.moveBlockUp", { name: item.name })}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M12 19V5" />
+                    <path d="m5 12 7-7 7 7" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  className="composer__prompt-block-action"
+                  onClick={() => moveInsertedPrompt(item.id, "down")}
+                  disabled={!canMovePromptBlock(item.id, "down")}
+                  aria-label={t("promptLibrary.moveBlockDown", { name: item.name })}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M12 5v14" />
+                    <path d="m19 12-7 7-7-7" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  className="composer__prompt-block-remove"
+                  onClick={() => removeInsertedPrompt(item.id)}
+                  aria-label={t("promptLibrary.removeInserted", { name: item.name })}
+                >
+                  ×
+                </button>
+              </div>
             </div>
           ))}
         </div>
-      )}
-
-      <textarea
-        ref={textareaRef}
-        className="prompt-area composer__textarea"
-        value={prompt}
-        placeholder={placeholder}
-        onChange={(e) => setPrompt(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-            e.preventDefault();
-            void generate();
-          }
-        }}
-      />
+      </div>
 
       <div className="composer__toolbar">
         <button
@@ -215,51 +343,80 @@ export function PromptComposer() {
         <button
           type="button"
           className="composer__tool"
-          onClick={() => void useCurrentAsReference()}
-          disabled={!currentImage || !canAddMore}
-          title={t("prompt.useCurrentTitle")}
+          onClick={openPromptLibrary}
+          title={t("promptLibrary.title")}
+          aria-label={t("promptLibrary.title")}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <polyline points="23 4 23 10 17 10" />
-            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
           </svg>
-          <span>{t("prompt.useCurrent")}</span>
+          <span>{t("sheet.tabs.library")}</span>
         </button>
-        <button
-          type="button"
-          className={`composer__tool${isDirectMode ? " composer__tool--on" : ""}`}
-          onClick={() => setPromptMode(isDirectMode ? "auto" : "direct")}
-          title={t("prompt.directModeTitle")}
-          aria-label={t("prompt.directModeTitle")}
-          aria-pressed={isDirectMode}
-        >
-          <span aria-hidden="true" style={{ fontWeight: 700, fontSize: 11 }}>1:1</span>
-          <span>{t("prompt.directMode")}</span>
-        </button>
+        {!isBottomComposer && (
+          <>
+            <button
+              type="button"
+              className="composer__tool"
+              onClick={() => void useCurrentAsReference()}
+              disabled={!currentImage || !canAddMore}
+              title={t("prompt.useCurrentTitle")}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <polyline points="23 4 23 10 17 10" />
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+              </svg>
+              <span>{t("prompt.useCurrent")}</span>
+            </button>
+            <button
+              type="button"
+              className={`composer__tool${isDirectMode ? " composer__tool--on" : ""}`}
+              onClick={() => setPromptMode(isDirectMode ? "auto" : "direct")}
+              title={t("prompt.directModeTitle")}
+              aria-label={t("prompt.directModeTitle")}
+              aria-pressed={isDirectMode}
+            >
+              <span aria-hidden="true" style={{ fontWeight: 700, fontSize: 11 }}>1:1</span>
+              <span>{t("prompt.directMode")}</span>
+            </button>
+          </>
+        )}
         <WebSearchToggle variant="compact" />
-        <div style={{ position: "relative" }}>
+        {!isBottomComposer && (
+          <div style={{ position: "relative" }}>
+            <button
+              type="button"
+              className="composer__tool"
+              onClick={() => setSaveOpen((v) => !v)}
+              disabled={!prompt.trim()}
+              title={t("promptLibrary.saveTitle")}
+              aria-label={t("promptLibrary.saveTitle")}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+              </svg>
+              <span>{t("promptLibrary.save")}</span>
+            </button>
+            {saveOpen && (
+              <SavePromptPopover
+                text={prompt}
+                mode={promptMode}
+                onClose={() => setSaveOpen(false)}
+              />
+            )}
+          </div>
+        )}
+        <span className="composer__hint">{t("prompt.hint")}</span>
+        {isBottomComposer && (
           <button
             type="button"
-            className="composer__tool"
-            onClick={() => setSaveOpen((v) => !v)}
-            disabled={!prompt.trim()}
-            title={t("promptLibrary.saveTitle")}
-            aria-label={t("promptLibrary.saveTitle")}
+            className={`composer__generate-btn${loading ? " loading" : ""}`}
+            onClick={() => void generate()}
+            disabled={!prompt.trim() && insertedPrompts.length === 0}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-            </svg>
-            <span>{t("promptLibrary.save")}</span>
+            {generateLabel}
           </button>
-          {saveOpen && (
-            <SavePromptPopover
-              text={prompt}
-              mode={promptMode}
-              onClose={() => setSaveOpen(false)}
-            />
-          )}
-        </div>
-        <span className="composer__hint">{t("prompt.hint")}</span>
+        )}
+      </div>
       </div>
 
       {dragOver && (

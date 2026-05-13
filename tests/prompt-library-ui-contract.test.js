@@ -138,8 +138,10 @@ describe("prompt library UI contract", () => {
     assert.match(modal, /t\("promptLibrary\.insert"\)/);
 
     assert.match(composer, /insertedPrompts = useAppStore/);
-    assert.match(composer, /className="composer__prompt-chip"/);
-    assert.match(composer, /className="composer__prompt-chip-title"/);
+    assert.match(composer, /className="composer__prompt-block"/);
+    assert.match(composer, /className="composer__prompt-block-title"/);
+    assert.match(composer, /moveInsertedPrompt\(item\.id, "up"\)/);
+    assert.match(composer, /moveInsertedPrompt\(item\.id, "down"\)/);
     assert.match(composer, /removeInsertedPrompt\(item\.id\)/);
     assert.match(actions, /insertPromptToComposer/);
     assert.match(actions, /id:\s*CANVAS_MODE_PROMPT_ID/);
@@ -150,8 +152,8 @@ describe("prompt library UI contract", () => {
 
     assert.match(css, /\.prompt-library-row__insert/);
     assert.match(css, /\.prompt-detail-modal__insert/);
-    assert.match(css, /\.composer__prompt-chip-title[\s\S]*text-overflow:\s*ellipsis/);
-    assert.match(css, /\.composer__prompt-chip-title[\s\S]*white-space:\s*nowrap/);
+    assert.match(css, /\.composer__prompt-block-title[\s\S]*text-overflow:\s*ellipsis/);
+    assert.match(css, /\.composer__prompt-block-title[\s\S]*white-space:\s*nowrap/);
 
     assert.equal(en.promptLibrary.insert, "Insert");
     assert.equal(typeof en.promptLibrary.inserted, "string");

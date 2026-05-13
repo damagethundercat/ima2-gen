@@ -30,7 +30,6 @@ export function ResultActions({ imageOverride = null }: ResultActionsProps) {
     (s) => s.permanentlyDeleteHistoryItemByClick,
   );
   const canvasOpen = useAppStore((s) => s.canvasOpen);
-  const openCanvas = useAppStore((s) => s.openCanvas);
   const [comfyExporting, setComfyExporting] = useState(false);
 
   const actionImage = imageOverride ?? currentImage;
@@ -61,6 +60,11 @@ export function ResultActions({ imageOverride = null }: ResultActionsProps) {
     showToast(t("toast.promptCopied"));
   };
 
+  const openExternal = () => {
+    const imageUrl = actionImage.url ?? actionImage.image;
+    window.open(imageUrl, "_blank", "noopener,noreferrer");
+  };
+
   const newFromHere = async () => {
     const hasPrompt = Boolean(actionImage.prompt);
     if (hasPrompt) setPrompt(actionImage.prompt as string);
@@ -77,7 +81,7 @@ export function ResultActions({ imageOverride = null }: ResultActionsProps) {
       });
     }
     const promptEl = document.querySelector<HTMLTextAreaElement>(
-      'textarea[name="prompt"], textarea#prompt, .sidebar textarea',
+      'textarea[name="prompt"], textarea#prompt, .classic-workspace textarea, .sidebar textarea',
     );
     if (promptEl) {
       promptEl.focus();
@@ -119,6 +123,9 @@ export function ResultActions({ imageOverride = null }: ResultActionsProps) {
       <button type="button" className="action-btn" onClick={copyPrompt}>
         {t("result.copyPrompt")}
       </button>
+      <button type="button" className="action-btn" onClick={openExternal}>
+        {t("result.openExternal")}
+      </button>
       <button
         type="button"
         className="action-btn action-btn--primary"
@@ -127,19 +134,6 @@ export function ResultActions({ imageOverride = null }: ResultActionsProps) {
       >
         {t("result.continueHere")}
       </button>
-      {!canvasOpen && (
-        <button
-          type="button"
-          className="action-btn"
-          onClick={openCanvas}
-          title={t("canvas.open")}
-          aria-label={t("canvas.openAria")}
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path d="M4 4h8v8M12 4l-8 8"/>
-          </svg>
-        </button>
-      )}
       {actionImage.filename && (
         <>
           <button

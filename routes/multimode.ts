@@ -16,6 +16,7 @@ import {
 import { logEvent, logError } from "../lib/logger.js";
 import { embedImageMetadataBestEffort } from "../lib/imageMetadataStore.js";
 import { invalidateHistoryIndex } from "../lib/historyIndex.js";
+import { normalizeComposerInsertedPrompts, normalizeComposerPrompt } from "../lib/composerSnapshot.js";
 
 import { errInfo } from "../lib/errInfo.js";
 import { requireRuntimeContext, type RouteRuntimeContext, type RuntimeContext } from "../lib/runtimeContext.js";
@@ -79,6 +80,8 @@ export function registerMultimodeRoutes(app: Express, ctxRaw: RouteRuntimeContex
     let routeImageModel: string | null = null;
     let routeWebSearchEnabled = true;
     let routePromptMode: "auto" | "direct" = "auto";
+    let routeComposerPrompt: string | null = null;
+    let routeComposerInsertedPrompts: ReturnType<typeof normalizeComposerInsertedPrompts> = [];
     let routeQualityWarnings: unknown[] = [];
     let latestUsage: Record<string, number> | null = null;
     let latestWebSearchCalls = 0;
@@ -103,6 +106,8 @@ export function registerMultimodeRoutes(app: Express, ctxRaw: RouteRuntimeContex
         reasoningEffort: rawReasoningEffort,
         webSearchEnabled: rawWebSearchEnabled = true,
       } = req.body;
+      const composerPrompt = normalizeComposerPrompt(req.body?.composerPrompt);
+      const composerInsertedPrompts = normalizeComposerInsertedPrompts(req.body?.composerInsertedPrompts);
       const maxImages = normalizeMaxImages(req.body?.maxImages);
       const normalizedPromptMode = promptMode === "direct" ? "direct" : "auto";
       const { quality, warnings: qualityWarnings } = normalizeOAuthParams({ provider, quality: rawQuality });
@@ -195,6 +200,8 @@ export function registerMultimodeRoutes(app: Express, ctxRaw: RouteRuntimeContex
       routeImageModel = imageModel ?? null;
       routeWebSearchEnabled = webSearchEnabled ?? false;
       routePromptMode = normalizedPromptMode;
+      routeComposerPrompt = composerPrompt;
+      routeComposerInsertedPrompts = composerInsertedPrompts;
       routeQualityWarnings = qualityWarnings;
       await mkdir(ctx.config.storage.generatedDir, { recursive: true });
 
@@ -222,6 +229,8 @@ export function registerMultimodeRoutes(app: Express, ctxRaw: RouteRuntimeContex
           userPrompt: prompt,
           revisedPrompt: image.revisedPrompt || null,
           promptMode: normalizedPromptMode,
+          composerPrompt,
+          composerInsertedPrompts,
           quality,
           size: effectiveSize,
           format,
@@ -338,6 +347,8 @@ export function registerMultimodeRoutes(app: Express, ctxRaw: RouteRuntimeContex
         warnings: qualityWarnings,
         extraIgnored: latestExtraIgnored,
         promptMode: normalizedPromptMode,
+        composerPrompt,
+        composerInsertedPrompts,
       });
       logEvent("multimode", "saved", {
         requestId,
@@ -398,6 +409,8 @@ export function registerMultimodeRoutes(app: Express, ctxRaw: RouteRuntimeContex
           warnings: routeQualityWarnings,
           extraIgnored: latestExtraIgnored,
           promptMode: routePromptMode,
+          composerPrompt: routeComposerPrompt,
+          composerInsertedPrompts: routeComposerInsertedPrompts,
           warning: {
             code: "RESPONSES_IMAGE_TIMEOUT",
             message: "The provider timed out after returning partial multimode results.",

@@ -36,6 +36,13 @@ export type SizePreset =
   | "auto"
   | "custom";
 
+export type ComposerInsertedPromptSnapshot = {
+  id: string;
+  name: string;
+  text: string;
+  placement: "before" | "after";
+};
+
 export type GenerateItem = {
   image: string;
   url?: string;
@@ -48,6 +55,8 @@ export type GenerateItem = {
   userPrompt?: string | null;
   revisedPrompt?: string | null;
   promptMode?: "auto" | "direct" | null;
+  composerPrompt?: string | null;
+  composerInsertedPrompts?: ComposerInsertedPromptSnapshot[] | null;
   elapsed?: number;
   provider?: string;
   quality?: string;
@@ -101,6 +110,8 @@ export type EmbeddedGenerationMetadata = {
   userPrompt?: string | null;
   revisedPrompt?: string | null;
   promptMode?: "auto" | "direct" | null;
+  composerPrompt?: string | null;
+  composerInsertedPrompts?: ComposerInsertedPromptSnapshot[] | null;
   quality?: string | null;
   size?: string | null;
   format?: string | null;
@@ -129,6 +140,8 @@ export type GenerateSingleResponse = {
   model?: string | null;
   revisedPrompt?: string | null;
   promptMode?: "auto" | "direct";
+  composerPrompt?: string | null;
+  composerInsertedPrompts?: ComposerInsertedPromptSnapshot[] | null;
 };
 
 export type GenerateMultiResponse = {
@@ -144,6 +157,8 @@ export type GenerateMultiResponse = {
   model?: string | null;
   revisedPrompt?: string | null;
   promptMode?: "auto" | "direct";
+  composerPrompt?: string | null;
+  composerInsertedPrompts?: ComposerInsertedPromptSnapshot[] | null;
 };
 
 export type GenerateResponse = GenerateSingleResponse | GenerateMultiResponse;
@@ -168,6 +183,8 @@ export type GenerateRequest = {
   requestId?: string;
   mode?: "auto" | "direct";
   webSearchEnabled?: boolean;
+  composerPrompt?: string;
+  composerInsertedPrompts?: ComposerInsertedPromptSnapshot[];
 };
 
 export type MultimodeGenerateRequest = Omit<GenerateRequest, "n"> & {
@@ -191,6 +208,8 @@ export type MultimodeGenerateResponse = {
   model?: string | null;
   webSearchCalls?: number;
   promptMode?: "auto" | "direct";
+  composerPrompt?: string | null;
+  composerInsertedPrompts?: ComposerInsertedPromptSnapshot[] | null;
   extraIgnored?: number;
 };
 

@@ -238,6 +238,13 @@ export function replaceCustomSizeSlot(
   return trimCustomSizeSlots(slots.map((slot) => (slot.id === slotId ? normalized : slot)));
 }
 
+export function removeCustomSizeSlot(
+  slots: CustomSizeSlot[],
+  slotId: string,
+): CustomSizeSlot[] {
+  return trimCustomSizeSlots(slots.filter((slot) => slot.id !== slotId));
+}
+
 // gpt-image-2 constraints:
 // - both dims multiple of 16
 // - max side <= 3840

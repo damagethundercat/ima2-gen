@@ -6,7 +6,6 @@ import { ReasoningEffortSelect } from "./ReasoningEffortSelect";
 import { WebSearchToggle } from "./WebSearchToggle";
 import { LanguageToggle } from "./LanguageToggle";
 import { ThemeToggle } from "./ThemeToggle";
-import { HistoryStripLayoutToggle } from "./HistoryStripLayoutToggle";
 import { useAppStore } from "../store/useAppStore";
 import type { GalleryScope } from "../store/useAppStore";
 import { useI18n } from "../i18n";
@@ -246,15 +245,6 @@ export function SettingsWorkspace() {
                 </div>
                 <div className="settings-row__control">
                   <ThemeToggle />
-                </div>
-              </article>
-              <article className="settings-row">
-                <div className="settings-row__copy">
-                  <h4>{t("settings.appearance.historyStripLayoutTitle")}</h4>
-                  <p>{t("settings.appearance.historyStripLayoutBody")}</p>
-                </div>
-                <div className="settings-row__control">
-                  <HistoryStripLayoutToggle />
                 </div>
               </article>
             </SettingsSectionBlock>

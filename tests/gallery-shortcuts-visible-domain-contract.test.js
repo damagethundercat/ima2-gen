@@ -47,17 +47,21 @@ describe("gallery shortcut visible-domain contract", () => {
     assert.match(store, /selectHistory:\s*\(item\) =>/);
     assert.match(store, /item\.canvasVersion\s*\?/);
     assert.match(store, /saveSelectedFilename\(target\?\.filename \?\? null\)/);
-    assert.match(store, /set\(\{ currentImage: target, unseenGeneratedCount: 0 \}\)/);
+    assert.match(store, /const scope = createPromptBuilderImageScope\(target\)/);
+    assert.match(store, /set\(\(state\) => \(\{[\s\S]*currentImage: target,[\s\S]*unseenGeneratedCount: 0,[\s\S]*promptBuilderScope: scope,[\s\S]*promptBuilderMessages: getPromptBuilderSessionMessages\(state\.promptBuilderSessions, scope\)/);
   });
 
-  it("normalizes persisted hidden canvas selections during hydration and storage sync", () => {
+  it("normalizes persisted hidden canvas selections during storage sync while hydration opens a new draft", () => {
     const store = readSource("ui/src/store/useAppStore.ts");
+    const hydrateBlock = store.split(/hydrateHistory\(\) \{/)[1] ?? "";
 
     assert.match(store, /syncFromStorage:\s*\(\) =>/);
     assert.match(store, /const normalized = matched\s*\?\s*resolveVisibleShortcutCurrent\(s\.history, matched\)/);
     assert.match(store, /s\.currentImage\?\.canvasVersion/);
-    assert.match(store, /const visibleHistory = getVisibleGalleryItems\(history\)/);
-    assert.match(store, /\(matched \? resolveVisibleShortcutCurrent\(history, matched\) : null\)/);
-    assert.match(store, /saveSelectedFilename\(currentImage\?\.filename \?\? null\)/);
+    assert.match(store, /const visibleFallback = getVisibleGalleryItems\(s\.history\)\[0\] \?\? null/);
+    assert.match(hydrateBlock, /saveSelectedFilename\(null\)/);
+    assert.match(hydrateBlock, /currentImage:\s*null/);
+    assert.match(hydrateBlock, /promptBuilderScope:\s*PROMPT_BUILDER_DRAFT_SCOPE/);
+    assert.doesNotMatch(hydrateBlock, /visibleHistory\[0\]/);
   });
 });

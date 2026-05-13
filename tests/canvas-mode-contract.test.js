@@ -42,20 +42,21 @@ describe("canvas-mode contract", () => {
     assert.match(store, /closeCanvas/);
   });
 
-  it("has double-click handler on image", () => {
+  it("keeps classic image viewer from opening canvas mode by default", () => {
     const canvas = readSource("ui/src/components/Canvas.tsx");
-    assert.match(canvas, /onDoubleClick/);
-    assert.match(canvas, /openCanvas/);
+    assert.doesNotMatch(canvas, /openCanvas/);
   });
 
-  it("creates a blank canvas through the local import path", () => {
+  it("keeps blank canvas internals while hiding the classic blank canvas CTA", () => {
     const canvas = readSource("ui/src/components/Canvas.tsx");
     const hook = readSource("ui/src/hooks/useCreateBlankCanvas.ts");
     const helper = readSource("ui/src/lib/canvas/blankCanvas.ts");
     const css = readSource("ui/src/index.css");
     const en = readSource("ui/src/i18n/en.json");
     const ko = readSource("ui/src/i18n/ko.json");
-    assert.match(canvas, /useCreateBlankCanvas/);
+    assert.doesNotMatch(canvas, /useCreateBlankCanvas/);
+    assert.doesNotMatch(canvas, /canvas__blank-entry/);
+    assert.doesNotMatch(canvas, /canvas\.blank\.create/);
     assert.match(hook, /createBlankCanvasFile/);
     assert.match(hook, /getResolvedSize/);
     assert.match(hook, /resolveBlankCanvasSize\(getResolvedSize\(\)\)/);
@@ -63,8 +64,6 @@ describe("canvas-mode contract", () => {
     assert.match(hook, /await importLocalImageToHistory\(file\)/);
     assert.match(hook, /if \(item\) openCanvas\(\)/);
     assert.match(canvas, /\) : !currentImage \? \(/);
-    assert.match(canvas, /canvas__blank-entry/);
-    assert.match(canvas, /canvas\.blank\.create/);
     assert.match(helper, /document\.createElement\("canvas"\)/);
     assert.match(helper, /ctx\.fillStyle = "#ffffff"/);
     assert.match(helper, /canvas\.toBlob/);
@@ -72,10 +71,10 @@ describe("canvas-mode contract", () => {
     assert.match(helper, /createBlankCanvasFile\(size\?: BlankCanvasSize\)/);
     assert.match(helper, /canvas\.width = width/);
     assert.match(helper, /canvas\.height = height/);
-    assert.match(css, /\.canvas__blank-entry/);
-    assert.match(css, /\.canvas__blank-sheet/);
-    assert.match(css, /\.canvas__blank-copy/);
-    assert.match(css, /\.canvas__blank-button/);
+    assert.doesNotMatch(css, /\.canvas__blank-entry/);
+    assert.doesNotMatch(css, /\.canvas__blank-sheet/);
+    assert.doesNotMatch(css, /\.canvas__blank-copy/);
+    assert.doesNotMatch(css, /\.canvas__blank-button/);
     assert.match(en, /"blank": \{/);
     assert.match(en, /"title": "Blank canvas"/);
     assert.match(en, /"subtitle": "Sketch on white paper, then continue from it\."/);
@@ -109,11 +108,11 @@ describe("canvas-mode contract", () => {
     assert.match(css, /\.canvas-mode-blank/);
   });
 
-  it("has canvas button in ResultActions", () => {
+  it("hides the canvas open button from ResultActions", () => {
     const actions = readSource("ui/src/components/ResultActions.tsx");
     assert.match(actions, /canvasOpen/);
-    assert.match(actions, /openCanvas/);
-    assert.match(actions, /canvas\.open/);
+    assert.doesNotMatch(actions, /openCanvas/);
+    assert.doesNotMatch(actions, /canvas\.open/);
   });
 
   it("applies canvas mode class to main canvas", () => {

@@ -5,6 +5,7 @@
 import { create } from "zustand";
 import type { CanvasExportBackground, HexColor } from "../types/canvas";
 import type {
+  ComposerInsertedPromptSnapshot,
   Count,
   Format,
   GenerateItem,
@@ -51,7 +52,10 @@ import {
   toggleGalleryFavorite,
   importPromptLibrary,
   importLocalImage,
+  postPromptBuilderChat,
   type HistoryCursor,
+  type PromptBuilderChatAttachment,
+  type PromptBuilderChatMessage,
   type SessionSummary,
   type SessionFull,
   type SessionGraphEdge,
@@ -268,6 +272,9 @@ type PersistedInFlight = {
   id: string;
   prompt: string;
   startedAt: number;
+  composerPrompt?: string;
+  composerInsertedPrompts?: ComposerInsertedPromptSnapshot[];
+  promptBuilderScope?: PromptBuilderScope;
   phase?: string;
   sessionId?: string | null;
   parentNodeId?: string | null;
@@ -343,17 +350,143 @@ async function fetchInflightScopes(scopes: InflightQueryScope[]): Promise<{
   };
 }
 
-type InsertedPrompt = {
-  id: string;
-  name: string;
-  text: string;
+type InsertedPromptPlacement = "before" | "after";
+
+type InsertedPrompt = ComposerInsertedPromptSnapshot;
+
+type InsertedPromptInput = Omit<InsertedPrompt, "placement"> & {
+  placement?: InsertedPromptPlacement;
 };
 
+export type PromptBuilderModel = ImageModel;
+
+export type PromptBuilderAttachment = PromptBuilderChatAttachment & {
+  id: string;
+};
+
+export type PromptBuilderMessage = {
+  id: string;
+  role: PromptBuilderChatMessage["role"];
+  content: string;
+  createdAt: number;
+  model?: PromptBuilderModel;
+  attachments?: PromptBuilderAttachment[];
+};
+
+const PROMPT_BUILDER_DRAFT_SCOPE_ID = "draft:new";
+const MAX_PROMPT_BUILDER_ATTACHMENTS = 6;
+const MAX_PROMPT_BUILDER_TEXT_ATTACHMENT_CHARS = 20_000;
+
+export type PromptBuilderScope =
+  | { kind: "draft"; id: typeof PROMPT_BUILDER_DRAFT_SCOPE_ID }
+  | { kind: "image"; id: string; imageKey: string };
+
+const PROMPT_BUILDER_DRAFT_SCOPE: PromptBuilderScope = {
+  kind: "draft",
+  id: PROMPT_BUILDER_DRAFT_SCOPE_ID,
+};
+
+function normalizePromptBuilderScope(value: unknown): PromptBuilderScope | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const item = value as Record<string, unknown>;
+  if (item.kind === "draft" && item.id === PROMPT_BUILDER_DRAFT_SCOPE_ID) {
+    return PROMPT_BUILDER_DRAFT_SCOPE;
+  }
+  if (
+    item.kind === "image" &&
+    typeof item.id === "string" &&
+    typeof item.imageKey === "string"
+  ) {
+    return {
+      kind: "image",
+      id: item.id,
+      imageKey: item.imageKey,
+    };
+  }
+  return undefined;
+}
+
+function getPromptBuilderImageKey(item: GenerateItem | null | undefined): string | null {
+  return item?.filename ?? item?.url ?? item?.image ?? null;
+}
+
+function createPromptBuilderImageScope(item: GenerateItem): PromptBuilderScope {
+  const imageKey = getPromptBuilderImageKey(item) ?? `image:${Date.now().toString(36)}`;
+  return {
+    kind: "image",
+    id: `image:${imageKey}`,
+    imageKey,
+  };
+}
+
+function getPromptBuilderSessionMessages(
+  sessions: Record<string, PromptBuilderMessage[]>,
+  scope: PromptBuilderScope,
+): PromptBuilderMessage[] {
+  return sessions[scope.id] ?? [];
+}
+
+function findPromptBuilderScopeImage(state: AppState, scope: PromptBuilderScope): GenerateItem | null {
+  if (scope.kind !== "image") return null;
+  const currentKey = getPromptBuilderImageKey(state.currentImage);
+  if (currentKey === scope.imageKey) return state.currentImage;
+  return state.history.find((item) => getPromptBuilderImageKey(item) === scope.imageKey) ?? null;
+}
+
+function isPromptBuilderTextFile(file: File): boolean {
+  if (file.type.startsWith("text/")) return true;
+  return /\.(txt|md|markdown|json|csv|tsv|yaml|yml|xml|html|css|js|ts|tsx|jsx)$/i.test(file.name);
+}
+
+async function createPromptBuilderAttachment(file: File): Promise<PromptBuilderAttachment> {
+  const base = {
+    id: `pba_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
+    name: file.name || "attachment",
+    mimeType: file.type || "application/octet-stream",
+    size: file.size,
+  };
+  if (file.type.startsWith("image/")) {
+    const raw = await readFileAsDataURL(file);
+    const dataUrl = await compressImage(raw, 768);
+    return { ...base, kind: "image", dataUrl };
+  }
+  if (isPromptBuilderTextFile(file)) {
+    const text = (await file.text()).slice(0, MAX_PROMPT_BUILDER_TEXT_ATTACHMENT_CHARS);
+    return { ...base, kind: "text", text };
+  }
+  return { ...base, kind: "file" };
+}
+
 function composePrompt(mainPrompt: string, insertedPrompts: InsertedPrompt[]): string {
+  const before = insertedPrompts
+    .filter((prompt) => prompt.placement === "before")
+    .map((prompt) => prompt.text.trim())
+    .filter(Boolean);
+  const after = insertedPrompts
+    .filter((prompt) => prompt.placement === "after")
+    .map((prompt) => prompt.text.trim())
+    .filter(Boolean);
   return [
-    ...insertedPrompts.map((prompt) => prompt.text.trim()).filter(Boolean),
+    ...before,
     mainPrompt.trim(),
+    ...after,
   ].filter(Boolean).join("\n\n");
+}
+
+function createPromptBuilderMessage(
+  role: PromptBuilderMessage["role"],
+  content: string,
+  model?: PromptBuilderModel,
+  attachments?: PromptBuilderAttachment[],
+): PromptBuilderMessage {
+  return {
+    id: `pb_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
+    role,
+    content,
+    createdAt: Date.now(),
+    model,
+    attachments: attachments && attachments.length > 0 ? attachments : undefined,
+  };
 }
 
 function toPersistedInFlightJob(job: ServerInFlightJob): PersistedInFlight {
@@ -407,6 +540,35 @@ function mergeMultimodeImages(current: GenerateItem[], incoming: GenerateItem[])
   );
 }
 
+function removeImageFromMultimodeSequences(
+  sequences: Record<string, MultimodeSequenceState>,
+  filename: string,
+): Record<string, MultimodeSequenceState> {
+  let changed = false;
+  const next: Record<string, MultimodeSequenceState> = {};
+  for (const [id, sequence] of Object.entries(sequences)) {
+    const images = sequence.images.filter((image) => image.filename !== filename);
+    if (images.length === sequence.images.length) {
+      next[id] = sequence;
+      continue;
+    }
+    changed = true;
+    if (images.length === 0) {
+      continue;
+    }
+    next[id] = {
+      ...sequence,
+      images,
+      returned: images.length,
+      status:
+        sequence.status === "complete" && images.length < sequence.requested
+          ? "partial"
+          : sequence.status,
+    };
+  }
+  return changed ? next : sequences;
+}
+
 function loadInFlight(): PersistedInFlight[] {
   try {
     const raw = localStorage.getItem(IN_FLIGHT_STORAGE_KEY);
@@ -424,6 +586,9 @@ function loadInFlight(): PersistedInFlight[] {
         id: x.id,
         prompt: x.prompt,
         startedAt: x.startedAt,
+        composerPrompt: typeof x.composerPrompt === "string" ? x.composerPrompt : undefined,
+        composerInsertedPrompts: normalizeInsertedPromptArray(x.composerInsertedPrompts) ?? undefined,
+        promptBuilderScope: normalizePromptBuilderScope(x.promptBuilderScope),
         phase: typeof x.phase === "string" ? x.phase : undefined,
         sessionId: typeof x.sessionId === "string" ? x.sessionId : null,
         parentNodeId: typeof x.parentNodeId === "string" ? x.parentNodeId : null,
@@ -483,7 +648,7 @@ function saveActiveSessionId(id: string | null): void {
   } catch {}
 }
 
-const HISTORY_LIMIT = 500;
+const HISTORY_LIMIT = 120;
 const MAX_REFERENCE_IMAGES = 5;
 
 type GraphSaveReason =
@@ -509,6 +674,11 @@ function mapHistoryItem(it: Awaited<ReturnType<typeof getHistory>>["items"][numb
     filename: it.filename,
     thumb: it.url,
     prompt: it.prompt ?? undefined,
+    userPrompt: it.userPrompt ?? null,
+    revisedPrompt: it.revisedPrompt ?? null,
+    promptMode: it.promptMode ?? null,
+    composerPrompt: it.composerPrompt ?? null,
+    composerInsertedPrompts: normalizeInsertedPromptArray(it.composerInsertedPrompts) ?? null,
     size: it.size ?? undefined,
     quality: it.quality ?? undefined,
     format: it.format as Format | undefined,
@@ -808,6 +978,7 @@ type AppState = {
   unseenGeneratedCount: number;
   inFlight: PersistedInFlight[];
   cancelInFlightJob: (requestId: string) => Promise<void>;
+  showInFlightJob: (requestId: string) => void;
   startInFlightPolling: () => void;
   reconcileInflight: () => Promise<void>;
   reconcileGraphPending: () => Promise<void>;
@@ -952,13 +1123,36 @@ type AppState = {
   setPromptMode: (m: "auto" | "direct") => void;
   setPrompt: (p: string) => void;
   insertedPrompts: InsertedPrompt[];
-  insertPromptToComposer: (prompt: InsertedPrompt) => void;
+  insertPromptToComposer: (prompt: InsertedPromptInput) => void;
   removeInsertedPromptFromComposer: (id: string) => void;
+  moveInsertedPromptInComposer: (id: string, direction: "up" | "down") => void;
+  setInsertedPromptPlacement: (id: string, placement: InsertedPromptPlacement) => void;
   clearInsertedPrompts: () => void;
+  promptBuilderMessages: PromptBuilderMessage[];
+  promptBuilderSessions: Record<string, PromptBuilderMessage[]>;
+  promptBuilderScope: PromptBuilderScope;
+  promptBuilderDraft: string;
+  promptBuilderModel: PromptBuilderModel;
+  promptBuilderLoading: boolean;
+  promptBuilderAttachments: PromptBuilderAttachment[];
+  startNewImageSession: () => void;
+  activatePromptBuilderForImage: (item: GenerateItem) => void;
+  clearPromptBuilderImageScope: () => void;
+  setPromptBuilderDraft: (draft: string) => void;
+  setPromptBuilderModel: (model: PromptBuilderModel) => void;
+  addPromptBuilderAttachments: (files: File[]) => Promise<void>;
+  removePromptBuilderAttachment: (id: string) => void;
+  clearPromptBuilderAttachments: () => void;
+  sendPromptBuilderMessage: (content?: string) => Promise<void>;
+  applyPromptBuilderMessageToPrompt: (messageId: string) => void;
+  insertPromptBuilderMessageAsBlock: (messageId: string) => void;
+  clearPromptBuilderMessages: () => void;
   selectHistory: (item: GenerateItem) => void;
+  showHistorySequence: (sequenceId: string) => void;
   markGeneratedResultsSeen: () => void;
   selectHistoryShortcutTarget: (action: GalleryShortcutAction) => void;
   trashHistoryItem: (item: GenerateItem) => Promise<void>;
+  trashHistorySequence: (sequenceId: string) => Promise<void>;
   restorePendingTrash: () => Promise<void>;
   clearPendingTrash: () => void;
   permanentlyDeleteHistoryItemByClick: (item: GenerateItem) => Promise<void>;
@@ -982,6 +1176,7 @@ type AppState = {
   // Prompt Library (0.23)
   promptLibraryOpen: boolean;
   togglePromptLibrary: () => void;
+  setPromptLibraryOpen: (open: boolean) => void;
   promptLibrary: { prompts: import("../lib/api").PromptItem[]; folders: import("../lib/api").PromptFolder[] };
   promptLibraryLoading: boolean;
   loadPromptLibrary: () => Promise<void>;
@@ -1070,13 +1265,37 @@ function isSizePreset(value: unknown): value is SizePreset {
   return typeof value === "string" && SIZE_PRESET_VALUES.has(value as SizePreset);
 }
 
-function isInsertedPromptArray(value: unknown): value is InsertedPrompt[] {
-  return Array.isArray(value) && value.every((item) =>
-    item &&
-    typeof item.id === "string" &&
-    typeof item.name === "string" &&
-    typeof item.text === "string",
-  );
+function normalizeInsertedPrompt(value: unknown): InsertedPrompt | null {
+  if (!value || typeof value !== "object") return null;
+  const item = value as Record<string, unknown>;
+  if (
+    typeof item.id !== "string" ||
+    typeof item.name !== "string" ||
+    typeof item.text !== "string"
+  ) {
+    return null;
+  }
+  return {
+    id: item.id,
+    name: item.name,
+    text: item.text,
+    placement: item.placement === "after" ? "after" : "before",
+  };
+}
+
+function normalizeInsertedPromptArray(value: unknown): InsertedPrompt[] | null {
+  if (!Array.isArray(value)) return null;
+  const prompts = value.map(normalizeInsertedPrompt);
+  return prompts.every((item): item is InsertedPrompt => item !== null) ? prompts : null;
+}
+
+function cloneInsertedPrompts(prompts: InsertedPrompt[]): InsertedPrompt[] {
+  return prompts.map((prompt) => ({ ...prompt }));
+}
+
+function getHistoryComposerPrompt(item: GenerateItem): string {
+  if (typeof item.composerPrompt === "string") return item.composerPrompt;
+  return item.userPrompt ?? item.prompt ?? "";
 }
 
 type GenerationDefaults = Partial<{
@@ -1119,8 +1338,9 @@ function loadGenerationDefaults(): GenerationDefaults {
     }
     if (isPromptMode(parsed.promptMode)) out.promptMode = parsed.promptMode;
     if (typeof parsed.prompt === "string") out.prompt = parsed.prompt;
-    if (isInsertedPromptArray(parsed.insertedPrompts)) {
-      out.insertedPrompts = parsed.insertedPrompts;
+    const insertedPrompts = normalizeInsertedPromptArray(parsed.insertedPrompts);
+    if (insertedPrompts) {
+      out.insertedPrompts = insertedPrompts;
     }
     return out;
   } catch {
@@ -1202,8 +1422,15 @@ export const useAppStore = create<AppState>((set, get) => ({
   multimodeAbortControllers: {},
   multimodePreviewFlightId: null,
   promptMode: storedGenerationDefaults.promptMode ?? "auto",
-  prompt: storedGenerationDefaults.prompt ?? "",
-  insertedPrompts: storedGenerationDefaults.insertedPrompts ?? [],
+  prompt: "",
+  insertedPrompts: [],
+  promptBuilderMessages: [],
+  promptBuilderSessions: {},
+  promptBuilderScope: PROMPT_BUILDER_DRAFT_SCOPE,
+  promptBuilderDraft: "",
+  promptBuilderModel: "gpt-5.5",
+  promptBuilderLoading: false,
+  promptBuilderAttachments: [],
   referenceImages: [],
   canvasReferenceImage: null,
 
@@ -1405,6 +1632,37 @@ export const useAppStore = create<AppState>((set, get) => ({
     } catch {
       get().showToast(t("toast.cancelFailed"), true);
     }
+  },
+  showInFlightJob: (requestId) => {
+    const state = get();
+    const job = state.inFlight.find((item) => item.id === requestId);
+    if (!job) return;
+    if (job.kind === "node") return;
+    if (job.kind === "multimode" && state.multimodeSequences[requestId]) {
+      set({
+        multimodePreviewFlightId: requestId,
+        canvasOpen: false,
+      });
+      return;
+    }
+    const scope = job.promptBuilderScope ?? PROMPT_BUILDER_DRAFT_SCOPE;
+    const restoredPrompt = job.composerPrompt ?? state.prompt;
+    const restoredInsertedPrompts = normalizeInsertedPromptArray(job.composerInsertedPrompts) ?? state.insertedPrompts;
+    saveGenerationDefaultsPatch({
+      prompt: restoredPrompt,
+      insertedPrompts: restoredInsertedPrompts,
+    });
+    saveSelectedFilename(null);
+    set({
+      currentImage: null,
+      multimodePreviewFlightId: null,
+      canvasOpen: false,
+      prompt: restoredPrompt,
+      insertedPrompts: restoredInsertedPrompts,
+      promptBuilderScope: scope,
+      promptBuilderMessages: getPromptBuilderSessionMessages(state.promptBuilderSessions, scope),
+      promptBuilderAttachments: [],
+    });
   },
   startInFlightPolling: () => {
     if (typeof window === "undefined") return;
@@ -2874,9 +3132,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   insertPromptToComposer: (prompt) =>
     set((state) => {
       const exists = state.insertedPrompts.some((item) => item.id === prompt.id);
+      const nextPrompt: InsertedPrompt = {
+        ...prompt,
+        placement: prompt.placement ?? "before",
+      };
       const insertedPrompts = exists
         ? state.insertedPrompts
-        : [...state.insertedPrompts, prompt];
+        : [...state.insertedPrompts, nextPrompt];
       saveGenerationDefaultsPatch({ insertedPrompts });
       return {
         insertedPrompts,
@@ -2888,10 +3150,213 @@ export const useAppStore = create<AppState>((set, get) => ({
       saveGenerationDefaultsPatch({ insertedPrompts });
       return { insertedPrompts };
     }),
+  moveInsertedPromptInComposer: (id, direction) =>
+    set((state) => {
+      const before = state.insertedPrompts.filter((prompt) => prompt.placement !== "after");
+      const after = state.insertedPrompts.filter((prompt) => prompt.placement === "after");
+      const mainPromptMarker = { kind: "main" as const };
+      const visualOrder = [
+        ...before.map((prompt) => ({ kind: "prompt" as const, prompt })),
+        mainPromptMarker,
+        ...after.map((prompt) => ({ kind: "prompt" as const, prompt })),
+      ];
+      const sourceIndex = visualOrder.findIndex(
+        (item) => item.kind === "prompt" && item.prompt.id === id,
+      );
+      if (sourceIndex < 0) return {};
+      const targetIndex = direction === "up" ? sourceIndex - 1 : sourceIndex + 1;
+      if (targetIndex < 0 || targetIndex >= visualOrder.length) return {};
+      const [moving] = visualOrder.splice(sourceIndex, 1);
+      visualOrder.splice(targetIndex, 0, moving);
+      const mainIndex = visualOrder.findIndex((item) => item.kind === "main");
+      const insertedPrompts = visualOrder
+        .filter((item): item is { kind: "prompt"; prompt: InsertedPrompt } => item.kind === "prompt")
+        .map((item, visualIndex): InsertedPrompt => ({
+          ...item.prompt,
+          placement: visualIndex < mainIndex ? "before" : "after",
+        }));
+      saveGenerationDefaultsPatch({ insertedPrompts });
+      return { insertedPrompts };
+    }),
+  setInsertedPromptPlacement: (id, placement) =>
+    set((state) => {
+      const insertedPrompts = state.insertedPrompts.map((prompt) =>
+        prompt.id === id ? { ...prompt, placement } : prompt,
+      );
+      saveGenerationDefaultsPatch({ insertedPrompts });
+      return { insertedPrompts };
+    }),
   clearInsertedPrompts: () => {
     saveGenerationDefaultsPatch({ insertedPrompts: [] });
     set({ insertedPrompts: [] });
   },
+  startNewImageSession: () => {
+    saveSelectedFilename(null);
+    saveGenerationDefaultsPatch({ prompt: "", insertedPrompts: [] });
+    set((state) => ({
+      currentImage: null,
+      canvasOpen: false,
+      referenceImages: [],
+      canvasReferenceImage: null,
+      prompt: "",
+      insertedPrompts: [],
+      multimodePreviewFlightId: null,
+      promptBuilderScope: PROMPT_BUILDER_DRAFT_SCOPE,
+      promptBuilderMessages: [],
+      promptBuilderDraft: "",
+      promptBuilderLoading: false,
+      promptBuilderAttachments: [],
+      promptBuilderSessions: {
+        ...state.promptBuilderSessions,
+        [PROMPT_BUILDER_DRAFT_SCOPE.id]: [],
+      },
+      unseenGeneratedCount: 0,
+    }));
+  },
+  activatePromptBuilderForImage: (item) => {
+    const scope = createPromptBuilderImageScope(item);
+    set((state) => ({
+      promptBuilderScope: scope,
+      promptBuilderMessages: getPromptBuilderSessionMessages(state.promptBuilderSessions, scope),
+    }));
+  },
+  clearPromptBuilderImageScope: () => {
+    set((state) => ({
+      promptBuilderScope: PROMPT_BUILDER_DRAFT_SCOPE,
+      promptBuilderMessages: getPromptBuilderSessionMessages(
+        state.promptBuilderSessions,
+        PROMPT_BUILDER_DRAFT_SCOPE,
+      ),
+    }));
+  },
+  setPromptBuilderDraft: (promptBuilderDraft) => set({ promptBuilderDraft }),
+  setPromptBuilderModel: (promptBuilderModel) => set({ promptBuilderModel }),
+  addPromptBuilderAttachments: async (files) => {
+    const current = get().promptBuilderAttachments;
+    const room = Math.max(0, MAX_PROMPT_BUILDER_ATTACHMENTS - current.length);
+    if (room === 0) return;
+    const next = await Promise.all(files.slice(0, room).map(createPromptBuilderAttachment));
+    set((state) => ({
+      promptBuilderAttachments: [...state.promptBuilderAttachments, ...next].slice(0, MAX_PROMPT_BUILDER_ATTACHMENTS),
+    }));
+  },
+  removePromptBuilderAttachment: (id) =>
+    set((state) => ({
+      promptBuilderAttachments: state.promptBuilderAttachments.filter((attachment) => attachment.id !== id),
+    })),
+  clearPromptBuilderAttachments: () => set({ promptBuilderAttachments: [] }),
+  sendPromptBuilderMessage: async (content) => {
+    const state = get();
+    const attachments = state.promptBuilderAttachments;
+    const text = (content ?? state.promptBuilderDraft).trim()
+      || (attachments.length > 0 ? t("promptBuilder.attachmentOnlyMessage") : "");
+    if (!text || state.promptBuilderLoading) return;
+    const model = state.promptBuilderModel;
+    const scope = state.promptBuilderScope;
+    const scopeImage = findPromptBuilderScopeImage(state, scope);
+    const userMessage = createPromptBuilderMessage("user", text, model, attachments);
+    const messages = [
+      ...getPromptBuilderSessionMessages(state.promptBuilderSessions, scope),
+      userMessage,
+    ];
+    set({
+      promptBuilderDraft: "",
+      promptBuilderLoading: true,
+      promptBuilderAttachments: [],
+      promptBuilderMessages: messages,
+      promptBuilderSessions: {
+        ...state.promptBuilderSessions,
+        [scope.id]: messages,
+      },
+    });
+    try {
+      const response = await postPromptBuilderChat({
+        model,
+        messages: messages.map(({ role, content: messageContent, attachments: messageAttachments }) => ({
+          role,
+          content: messageContent,
+          attachments: messageAttachments?.map(({ kind, name, mimeType, size, dataUrl, text: attachmentText }) => ({
+            kind,
+            name,
+            mimeType,
+            size,
+            dataUrl,
+            text: attachmentText,
+          })),
+        })),
+        context: {
+          currentPrompt: state.prompt,
+          insertedPrompts: state.insertedPrompts.map((prompt) => ({
+            name: prompt.name,
+            text: prompt.text,
+          })),
+          currentResultPrompt: scopeImage?.revisedPrompt || scopeImage?.userPrompt || scopeImage?.prompt || null,
+          settings: {
+            imageModel: state.imageModel,
+            quality: state.quality,
+            size: state.getResolvedSize(),
+            format: state.format,
+            moderation: state.moderation,
+            promptMode: state.promptMode,
+            webSearchEnabled: state.webSearchEnabled,
+          },
+        },
+      });
+      const assistantMessage = createPromptBuilderMessage(
+        "assistant",
+        response.message.content,
+        response.model as PromptBuilderModel,
+      );
+      set((current) => ({
+        promptBuilderSessions: {
+          ...current.promptBuilderSessions,
+          [scope.id]: [
+            ...(current.promptBuilderSessions[scope.id] ?? messages),
+            assistantMessage,
+          ],
+        },
+        promptBuilderMessages:
+          current.promptBuilderScope.id === scope.id
+            ? [
+                ...(current.promptBuilderSessions[scope.id] ?? messages),
+                assistantMessage,
+              ]
+            : current.promptBuilderMessages,
+      }));
+    } catch (error) {
+      console.error("[PromptBuilder] chat failed", error);
+      get().showToast(t("promptBuilder.failed"), true);
+    } finally {
+      set({ promptBuilderLoading: false });
+    }
+  },
+  applyPromptBuilderMessageToPrompt: (messageId) => {
+    const message = get().promptBuilderMessages.find((item) => item.id === messageId);
+    if (!message || message.role !== "assistant") return;
+    const prompt = message.content.trim();
+    saveGenerationDefaultsPatch({ prompt });
+    set({ prompt });
+    get().showToast(t("promptBuilder.applied"));
+  },
+  insertPromptBuilderMessageAsBlock: (messageId) => {
+    const message = get().promptBuilderMessages.find((item) => item.id === messageId);
+    if (!message || message.role !== "assistant") return;
+    get().insertPromptToComposer({
+      id: `builder_${message.id}`,
+      name: t("promptBuilder.blockName"),
+      text: message.content,
+      placement: "after",
+    });
+    get().showToast(t("promptBuilder.inserted"));
+  },
+  clearPromptBuilderMessages: () =>
+    set((state) => ({
+      promptBuilderMessages: [],
+      promptBuilderSessions: {
+        ...state.promptBuilderSessions,
+        [state.promptBuilderScope.id]: [],
+      },
+    })),
 
   selectHistory: (item) => {
     const history = get().history;
@@ -2899,7 +3364,67 @@ export const useAppStore = create<AppState>((set, get) => ({
       ? resolveVisibleShortcutCurrent(history, item) ?? getVisibleGalleryItems(history)[0] ?? null
       : resolveVisibleShortcutCurrent(history, item) ?? item;
     saveSelectedFilename(target?.filename ?? null);
-    set({ currentImage: target, unseenGeneratedCount: 0 });
+    if (!target) {
+      set({ currentImage: null, unseenGeneratedCount: 0, multimodePreviewFlightId: null });
+      return;
+    }
+    const scope = createPromptBuilderImageScope(target);
+    const restoredPrompt = getHistoryComposerPrompt(target);
+    const restoredInsertedPrompts = normalizeInsertedPromptArray(target.composerInsertedPrompts) ?? [];
+    saveGenerationDefaultsPatch({ prompt: restoredPrompt, insertedPrompts: restoredInsertedPrompts });
+    set((state) => ({
+      currentImage: target,
+      unseenGeneratedCount: 0,
+      multimodePreviewFlightId: null,
+      promptBuilderScope: scope,
+      promptBuilderMessages: getPromptBuilderSessionMessages(state.promptBuilderSessions, scope),
+      promptBuilderAttachments: [],
+      prompt: restoredPrompt,
+      insertedPrompts: restoredInsertedPrompts,
+    }));
+  },
+
+  showHistorySequence: (sequenceId) => {
+    const items = get().history
+      .filter((item) => item.sequenceId === sequenceId && !item.canvasVersion)
+      .sort((a, b) => {
+        const ai = a.sequenceIndex ?? Number.MAX_SAFE_INTEGER;
+        const bi = b.sequenceIndex ?? Number.MAX_SAFE_INTEGER;
+        if (ai !== bi) return ai - bi;
+        return (a.createdAt ?? 0) - (b.createdAt ?? 0);
+      });
+    if (items.length === 0) return;
+    const previewId = `history:${sequenceId}`;
+    const requested = Math.max(
+      items.length,
+      ...items.map((item) => item.sequenceTotalRequested ?? 0),
+    );
+    const returned = items.length;
+    const status: MultimodeSequenceStatus =
+      items[0]?.sequenceStatus === "empty"
+        ? "empty"
+        : returned >= requested
+          ? "complete"
+          : "partial";
+    saveSelectedFilename(null);
+    set((state) => ({
+      currentImage: null,
+      unseenGeneratedCount: 0,
+      canvasOpen: false,
+      multimodePreviewFlightId: previewId,
+      multimodeSequences: {
+        ...state.multimodeSequences,
+        [previewId]: {
+          sequenceId,
+          requestId: previewId,
+          requested,
+          returned,
+          images: items,
+          partials: [],
+          status,
+        },
+      },
+    }));
   },
 
   markGeneratedResultsSeen: () => set({ unseenGeneratedCount: 0 }),
@@ -2925,15 +3450,64 @@ export const useAppStore = create<AppState>((set, get) => ({
       : current;
     try {
       await deleteHistoryItem(filename);
-      set((s) => ({
-        history: s.history.filter((h) => h.filename !== filename),
-        currentImage: replacement,
-        trashPending: null,
-      }));
+      set((s) => {
+        const multimodeSequences = removeImageFromMultimodeSequences(s.multimodeSequences, filename);
+        const multimodePreviewFlightId =
+          s.multimodePreviewFlightId && !multimodeSequences[s.multimodePreviewFlightId]
+            ? null
+            : s.multimodePreviewFlightId;
+        return {
+          history: s.history.filter((h) => h.filename !== filename),
+          currentImage: replacement,
+          multimodePreviewFlightId,
+          multimodeSequences,
+          trashPending: null,
+        };
+      });
       if (removingCurrent) saveSelectedFilename(replacement?.filename ?? null);
       get().showToast(t("gallery.movedToSystemTrash", { filename }));
     } catch (err) {
       console.error("[history] trash failed", err);
+      get().showToast(t("gallery.deleteFailed"), true);
+    }
+  },
+
+  trashHistorySequence: async (sequenceId) => {
+    const targets = get().history.filter((item) =>
+      item.sequenceId === sequenceId && !item.canvasVersion && Boolean(item.filename),
+    );
+    if (targets.length === 0) {
+      get().showToast(t("gallery.deleteFailed"), true);
+      return;
+    }
+    const ok = window.confirm(t("history.deleteSequenceConfirm", { count: targets.length }));
+    if (!ok) return;
+    const filenames = new Set(targets.map((item) => item.filename).filter((filename): filename is string => Boolean(filename)));
+    const current = get().currentImage;
+    const removingCurrent = Boolean(current?.filename && filenames.has(current.filename));
+    const removingPreview =
+      get().multimodePreviewFlightId === `history:${sequenceId}` ||
+      get().multimodePreviewFlightId === sequenceId;
+    try {
+      for (const filename of filenames) {
+        await deleteHistoryItem(filename);
+      }
+      set((state) => {
+        const nextSequences = { ...state.multimodeSequences };
+        delete nextSequences[`history:${sequenceId}`];
+        delete nextSequences[sequenceId];
+        return {
+          history: state.history.filter((item) => !item.filename || !filenames.has(item.filename)),
+          currentImage: removingCurrent ? null : state.currentImage,
+          multimodePreviewFlightId: removingPreview ? null : state.multimodePreviewFlightId,
+          multimodeSequences: nextSequences,
+          trashPending: null,
+        };
+      });
+      if (removingCurrent) saveSelectedFilename(null);
+      get().showToast(t("history.sequenceDeleted", { count: filenames.size }));
+    } catch (err) {
+      console.error("[history] sequence trash failed", err);
       get().showToast(t("gallery.deleteFailed"), true);
     }
   },
@@ -3023,7 +3597,13 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       const item = await importLocalImage(file);
       get().addHistoryItem(item);
-      set({ currentImage: item, unseenGeneratedCount: 0 });
+      const scope = createPromptBuilderImageScope(item);
+      set((state) => ({
+        currentImage: item,
+        unseenGeneratedCount: 0,
+        promptBuilderScope: scope,
+        promptBuilderMessages: getPromptBuilderSessionMessages(state.promptBuilderSessions, scope),
+      }));
       if (item.filename) saveSelectedFilename(item.filename);
       get().showToast(t("toast.localImportSuccess"));
       return item;
@@ -3060,6 +3640,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (s.uiMode !== "classic") return;
     const prompt = composePrompt(s.prompt, s.insertedPrompts);
     if (!prompt) return;
+    const composerPrompt = s.prompt;
+    const composerInsertedPrompts = cloneInsertedPrompts(s.insertedPrompts);
+    const promptBuilderScope = s.promptBuilderScope;
     const size = sizeOverride ?? s.getResolvedSize();
     const flightId = `mm_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const controller = new AbortController();
@@ -3067,7 +3650,15 @@ export const useAppStore = create<AppState>((set, get) => ({
     const requested = normalizeCount(s.multimodeMaxImages);
     const nextInFlight: PersistedInFlight[] = [
       ...s.inFlight,
-      { id: flightId, prompt, startedAt, kind: "multimode" },
+      {
+        id: flightId,
+        prompt,
+        startedAt,
+        kind: "multimode",
+        composerPrompt,
+        composerInsertedPrompts,
+        promptBuilderScope,
+      },
     ];
     const initialSequence: MultimodeSequenceState = {
       sequenceId: flightId,
@@ -3103,6 +3694,8 @@ export const useAppStore = create<AppState>((set, get) => ({
           webSearchEnabled: s.webSearchEnabled,
           requestId: flightId,
           mode: s.promptMode,
+          composerPrompt,
+          composerInsertedPrompts,
           ...(s.referenceImages.length
             ? { references: s.referenceImages.map(stripDataUrlPrefix) }
             : {}),
@@ -3153,6 +3746,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       const items = res.images.map((image) => ({
         ...image,
         prompt,
+        composerPrompt,
+        composerInsertedPrompts,
         elapsed: Number.parseFloat(res.elapsed),
         provider: res.provider,
         usage: res.usage,
@@ -3264,6 +3859,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     const s = get();
     const prompt = composePrompt(s.prompt, s.insertedPrompts);
     if (!prompt) return;
+    const composerPrompt = s.prompt;
+    const composerInsertedPrompts = cloneInsertedPrompts(s.insertedPrompts);
+    const promptBuilderScope = s.promptBuilderScope;
 
     const size = sizeOverride ?? s.getResolvedSize();
 
@@ -3271,7 +3869,14 @@ export const useAppStore = create<AppState>((set, get) => ({
     const startedAt = Date.now();
     const nextInFlight: PersistedInFlight[] = [
       ...s.inFlight,
-      { id: flightId, prompt, startedAt },
+      {
+        id: flightId,
+        prompt,
+        startedAt,
+        composerPrompt,
+        composerInsertedPrompts,
+        promptBuilderScope,
+      },
     ];
     saveInFlight(nextInFlight);
     set({
@@ -3294,6 +3899,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         webSearchEnabled: s.webSearchEnabled,
         requestId: flightId,
         mode: s.promptMode,
+        composerPrompt,
+        composerInsertedPrompts,
         ...(s.referenceImages.length
           ? { references: s.referenceImages.map(stripDataUrlPrefix) }
           : {}),
@@ -3307,6 +3914,8 @@ export const useAppStore = create<AppState>((set, get) => ({
             image: img.image,
             filename: img.filename,
             prompt,
+            composerPrompt,
+            composerInsertedPrompts,
             elapsed: res.elapsed,
             provider: res.provider,
             usage: res.usage,
@@ -3326,6 +3935,8 @@ export const useAppStore = create<AppState>((set, get) => ({
             image: first.image,
             filename: first.filename,
             prompt,
+            composerPrompt,
+            composerInsertedPrompts,
             elapsed: res.elapsed,
             provider: res.provider,
             usage: res.usage,
@@ -3339,6 +3950,8 @@ export const useAppStore = create<AppState>((set, get) => ({
             image: res.image,
             filename: res.filename,
             prompt,
+            composerPrompt,
+            composerInsertedPrompts,
             elapsed: res.elapsed,
             provider: res.provider,
             usage: res.usage,
@@ -3400,27 +4013,23 @@ export const useAppStore = create<AppState>((set, get) => ({
       try {
         const res = await getHistory({ limit: HISTORY_LIMIT });
         const history: GenerateItem[] = res.items.map(mapHistoryItem);
-        set({ historyNextCursor: res.nextCursor, loadedHistoryRetainLimit: HISTORY_LIMIT });
-        if (history.length > 0) {
-          const selected = loadSelectedFilename();
-          const matched = selected
-            ? history.find((it) => it.filename === selected)
-            : null;
-          const visibleHistory = getVisibleGalleryItems(history);
-          const currentImage =
-            (matched ? resolveVisibleShortcutCurrent(history, matched) : null) ??
-            visibleHistory[0] ??
-            null;
-          set({
-            history,
-            currentImage,
-            historyNextCursor: res.nextCursor,
-            loadedHistoryRetainLimit: Math.max(HISTORY_LIMIT, history.length),
-          });
-          if (currentImage?.filename !== selected) {
-            saveSelectedFilename(currentImage?.filename ?? null);
-          }
-        }
+        saveGenerationDefaultsPatch({ prompt: "", insertedPrompts: [] });
+        saveSelectedFilename(null);
+        set((state) => ({
+          history,
+          currentImage: null,
+          prompt: "",
+          insertedPrompts: [],
+          historyNextCursor: res.nextCursor,
+          loadedHistoryRetainLimit: Math.max(HISTORY_LIMIT, history.length),
+          promptBuilderScope: PROMPT_BUILDER_DRAFT_SCOPE,
+          promptBuilderMessages: getPromptBuilderSessionMessages(
+            state.promptBuilderSessions,
+            PROMPT_BUILDER_DRAFT_SCOPE,
+          ),
+          promptBuilderAttachments: [],
+          multimodePreviewFlightId: null,
+        }));
       } catch (err) {
         console.warn("[history] load failed:", err);
       }
@@ -3460,6 +4069,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   // ── Prompt Library actions (0.23) ──
   togglePromptLibrary() {
     set((s) => ({ promptLibraryOpen: !s.promptLibraryOpen }));
+  },
+  setPromptLibraryOpen(open) {
+    set({ promptLibraryOpen: open });
   },
 
   async loadPromptLibrary() {
@@ -3875,10 +4487,31 @@ async function addHistory(
     [merged, ...historyWithoutDuplicate],
     state.loadedHistoryRetainLimit + 1,
   );
+  const scope = createPromptBuilderImageScope(merged);
+  const sourceJob = state.inFlight.find((job) => job.id === merged.requestId);
+  const sourceScope = sourceJob?.promptBuilderScope;
+  const sourceMessages = sourceScope
+    ? getPromptBuilderSessionMessages(state.promptBuilderSessions, sourceScope)
+    : [];
+  const targetMessages = getPromptBuilderSessionMessages(state.promptBuilderSessions, scope);
+  const promptBuilderSessions =
+    sourceScope &&
+    sourceScope.id !== scope.id &&
+    sourceMessages.length > 0 &&
+    targetMessages.length === 0
+      ? {
+          ...state.promptBuilderSessions,
+          [scope.id]: sourceMessages,
+        }
+      : state.promptBuilderSessions;
   saveSelectedFilename(merged.filename ?? null);
   set({
     history,
     currentImage: merged,
+    promptBuilderScope: scope,
+    promptBuilderSessions,
+    promptBuilderMessages: getPromptBuilderSessionMessages(promptBuilderSessions, scope),
+    promptBuilderAttachments: [],
     loadedHistoryRetainLimit: Math.max(
       state.loadedHistoryRetainLimit,
       Math.min(state.history.length + 1, state.loadedHistoryRetainLimit + 1),

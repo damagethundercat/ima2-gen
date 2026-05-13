@@ -9,6 +9,14 @@ function readSource(path) {
   return readFileSync(join(root, path), "utf8");
 }
 
+function readCssRule(source, selector) {
+  const start = source.indexOf(`${selector} {`);
+  assert.notEqual(start, -1, `Missing CSS rule for ${selector}`);
+  const end = source.indexOf("\n}", start);
+  assert.notEqual(end, -1, `Unclosed CSS rule for ${selector}`);
+  return source.slice(start, end + 2);
+}
+
 describe("in-flight prompt tooltip contract", () => {
   it("keeps compact prompt rows while exposing the full prompt", () => {
     const source = readSource("ui/src/components/InFlightList.tsx");
@@ -31,6 +39,38 @@ describe("in-flight prompt tooltip contract", () => {
     assert.match(api, /export function cancelInflight/);
     assert.match(store, /cancelInFlightJob:\s*async/);
     assert.match(store, /await cancelInflight\(requestId\)/);
+  });
+
+  it("renders as a sidebar-inline clickable generation launcher", () => {
+    const source = readSource("ui/src/components/InFlightList.tsx");
+    const app = readSource("ui/src/App.tsx");
+    const sidebar = readSource("ui/src/components/Sidebar.tsx");
+    const store = readSource("ui/src/store/useAppStore.ts");
+    const css = readSource("ui/src/index.css");
+    const inFlightRule = readCssRule(css, ".in-flight-list");
+
+    assert.doesNotMatch(app, /import \{ InFlightList \}/);
+    assert.doesNotMatch(app, /<InFlightList \/>/);
+    assert.match(sidebar, /import \{ InFlightList \} from "\.\/InFlightList"/);
+    assert.match(sidebar, /<InFlightList \/>/);
+    assert.match(source, /showInFlightJob/);
+    assert.match(source, /className="in-flight-open"/);
+    assert.match(source, /onClick=\{\(\) => showInFlightJob\(f\.id\)\}/);
+    assert.match(store, /showInFlightJob:\s*\(requestId: string\) => void/);
+    assert.match(store, /showInFlightJob:\s*\(requestId\) => \{/);
+    assert.match(inFlightRule, /width:\s*min\(178px,\s*100%\)/);
+    assert.doesNotMatch(inFlightRule, /position:\s*fixed/);
+  });
+
+  it("reopens multimode previews and classic halftone loading surfaces from in-flight jobs", () => {
+    const store = readSource("ui/src/store/useAppStore.ts");
+    const showBlock = store.split(/showInFlightJob:\s*\(requestId\) => \{/)[1] ?? "";
+
+    assert.match(showBlock, /job\.kind === "multimode"/);
+    assert.match(showBlock, /multimodePreviewFlightId:\s*requestId/);
+    assert.match(showBlock, /saveSelectedFilename\(null\)/);
+    assert.match(showBlock, /currentImage:\s*null/);
+    assert.match(showBlock, /multimodePreviewFlightId:\s*null/);
   });
 
   it("merges noPrompt into the existing locale inflight objects", () => {

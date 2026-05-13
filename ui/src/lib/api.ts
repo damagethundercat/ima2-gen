@@ -1,5 +1,6 @@
 import type {
   BillingResponse,
+  ComposerInsertedPromptSnapshot,
   EmbeddedGenerationMetadata,
   GenerateItem,
   GenerateRequest,
@@ -112,6 +113,47 @@ export function postGenerate(payload: GenerateRequest): Promise<GenerateResponse
   });
 }
 
+export type PromptBuilderChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+  attachments?: PromptBuilderChatAttachment[];
+};
+
+export type PromptBuilderChatAttachment = {
+  kind: "image" | "text" | "file";
+  name: string;
+  mimeType: string;
+  size: number;
+  dataUrl?: string;
+  text?: string;
+};
+
+export type PromptBuilderChatRequest = {
+  model: string;
+  messages: PromptBuilderChatMessage[];
+  context?: {
+    currentPrompt?: string;
+    insertedPrompts?: Array<{ name: string; text: string }>;
+    currentResultPrompt?: string | null;
+    settings?: Record<string, unknown>;
+  };
+};
+
+export type PromptBuilderChatResponse = {
+  provider: "oauth";
+  model: string;
+  message: PromptBuilderChatMessage;
+  usage?: Record<string, unknown> | null;
+};
+
+export function postPromptBuilderChat(payload: PromptBuilderChatRequest): Promise<PromptBuilderChatResponse> {
+  return jsonFetch<PromptBuilderChatResponse>("/api/prompt-builder/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
 function parseSseBlock(block: string): { event: string | null; data: unknown } | null {
   let event: string | null = null;
   const dataLines: string[] = [];
@@ -218,6 +260,8 @@ export type HistoryItem = {
   userPrompt?: string | null;
   revisedPrompt?: string | null;
   promptMode?: "auto" | "direct" | null;
+  composerPrompt?: string | null;
+  composerInsertedPrompts?: ComposerInsertedPromptSnapshot[] | null;
   quality: string | null;
   size: string | null;
   moderation?: string | null;

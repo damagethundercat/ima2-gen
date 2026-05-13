@@ -17,6 +17,7 @@ import {
 import { logEvent, logError } from "../lib/logger.js";
 import { embedImageMetadataBestEffort } from "../lib/imageMetadataStore.js";
 import { invalidateHistoryIndex } from "../lib/historyIndex.js";
+import { normalizeComposerInsertedPrompts, normalizeComposerPrompt } from "../lib/composerSnapshot.js";
 
 import { errInfo } from "../lib/errInfo.js";
 import { requireRuntimeContext, type RouteRuntimeContext, type RuntimeContext } from "../lib/runtimeContext.js";
@@ -54,6 +55,8 @@ export function registerGenerateRoutes(app: Express, ctxRaw: RouteRuntimeContext
         reasoningEffort: rawReasoningEffort,
         webSearchEnabled: rawWebSearchEnabled = true,
       } = req.body;
+      const composerPrompt = normalizeComposerPrompt(req.body?.composerPrompt);
+      const composerInsertedPrompts = normalizeComposerInsertedPrompts(req.body?.composerInsertedPrompts);
       const { quality, warnings: qualityWarnings } = normalizeOAuthParams({ provider, quality: rawQuality });
       const providerOptions = resolveProviderOptions(ctx, {
         provider,
@@ -199,6 +202,8 @@ export function registerGenerateRoutes(app: Express, ctxRaw: RouteRuntimeContext
             userPrompt: prompt,
             revisedPrompt: r.value.revisedPrompt || null,
             promptMode: normalizedPromptMode,
+            composerPrompt,
+            composerInsertedPrompts,
             quality,
             size: effectiveSize,
             format,
@@ -297,6 +302,8 @@ export function registerGenerateRoutes(app: Express, ctxRaw: RouteRuntimeContext
         revisedPrompt: firstRevised,
         promptMode: normalizedPromptMode,
         webSearchEnabled,
+        composerPrompt,
+        composerInsertedPrompts,
       };
 
       if (count === 1) {

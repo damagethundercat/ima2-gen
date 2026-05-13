@@ -1,10 +1,9 @@
 import { UIModeSwitch } from "./UIModeSwitch";
-import { PromptComposer } from "./PromptComposer";
-import { GenerateButton } from "./GenerateButton";
 import { InFlightList } from "./InFlightList";
 import { SessionPicker } from "./SessionPicker";
 import { SettingsButton } from "./SettingsButton";
 import { ImageModelSelect } from "./ImageModelSelect";
+import { SidebarHistory } from "./SidebarHistory";
 import { CardNewsComposer } from "./card-news/CardNewsComposer";
 import { useAppStore } from "../store/useAppStore";
 import { ENABLE_CARD_NEWS_MODE, ENABLE_NODE_MODE } from "../lib/devMode";
@@ -37,8 +36,8 @@ export function SidebarStack() {
       <UIModeSwitch />
       {uiMode === "classic" ? (
         <>
-          <PromptComposer />
-          <GenerateButton />
+          <NewImageSessionButton />
+          <SidebarHistory />
           <InFlightList />
         </>
       ) : uiMode === "card-news" ? (
@@ -48,6 +47,7 @@ export function SidebarStack() {
       ) : (
         <>
           <SessionPicker />
+          <SidebarHistory />
           {referenceImages.length > 0 ? (
             <div className="node-mode-ref-warning" role="status">
               <strong>{t("node.classicRefsParkedTitle")}</strong>
@@ -57,9 +57,6 @@ export function SidebarStack() {
               </button>
             </div>
           ) : null}
-          <div className="sidebar__node-hint">
-            {t("sidebar.nodeModeHint")}
-          </div>
           <InFlightList />
         </>
       )}
@@ -77,15 +74,34 @@ export function Sidebar() {
   );
 }
 
+function NewImageSessionButton() {
+  const { t } = useI18n();
+  const startNewImageSession = useAppStore((s) => s.startNewImageSession);
+  const currentImage = useAppStore((s) => s.currentImage);
+  const multimodePreviewFlightId = useAppStore((s) => s.multimodePreviewFlightId);
+  const isActive = currentImage === null && multimodePreviewFlightId === null;
+
+  return (
+    <button
+      type="button"
+      className={`sidebar-new-session${isActive ? " active" : ""}`}
+      onClick={startNewImageSession}
+      title={t("history.newImageSessionTitle")}
+      aria-label={t("history.newImageSessionTitle")}
+    >
+      <span aria-hidden="true">+</span>
+    </button>
+  );
+}
+
 function PromptLibraryButton() {
   const { t } = useI18n();
-  const toggle = useAppStore((s) => s.togglePromptLibrary);
-  const promptLibraryOpen = useAppStore((s) => s.promptLibraryOpen);
+  const setPromptLibraryOpen = useAppStore((s) => s.setPromptLibraryOpen);
   const rightPanelOpen = useAppStore((s) => s.rightPanelOpen);
   const toggleRightPanel = useAppStore((s) => s.toggleRightPanel);
   const openPromptLibrary = () => {
-    if (!promptLibraryOpen && !rightPanelOpen) toggleRightPanel();
-    toggle();
+    if (!rightPanelOpen) toggleRightPanel();
+    setPromptLibraryOpen(true);
   };
 
   return (
