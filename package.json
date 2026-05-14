@@ -1,6 +1,6 @@
 {
   "name": "@damagethundercat/ima2-gen",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "ima2-genX: local OAuth image generation studio with prompt-builder workflows",
   "type": "module",
   "bin": {
