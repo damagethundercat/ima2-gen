@@ -265,7 +265,7 @@
     "empty": "Describe the direction you want. I will include your current prompt and settings as context.",
     "user": "You",
     "assistant": "Builder",
-    "placeholder": "Example: make this prompt more cinematic and realistic",
+    "placeholder": "What kind of image should we make?",
     "send": "Send",
     "sending": "Writing",
     "thinking": "Refining the prompt...",
