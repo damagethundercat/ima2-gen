@@ -42,6 +42,21 @@ type EmptyHalftonePoint = {
   phase: number;
 };
 
+type EmptyHalftonePalette = {
+  rgb: string;
+  alphaScale: number;
+};
+
+function getEmptyHalftonePalette(canvas: HTMLCanvasElement): EmptyHalftonePalette {
+  const style = getComputedStyle(canvas);
+  const rgb = style.getPropertyValue("--canvas-empty-dot-rgb").trim() || "245, 247, 250";
+  const rawAlphaScale = Number.parseFloat(
+    style.getPropertyValue("--canvas-empty-dot-alpha-scale").trim(),
+  );
+  const alphaScale = Number.isFinite(rawAlphaScale) ? rawAlphaScale : 1;
+  return { rgb, alphaScale };
+}
+
 function dotFieldIntensity(x: number, y: number): number {
   const fields = [
     { x: 0.24, y: 0.30, rx: 0.24, ry: 0.22, weight: 0.60 },
@@ -102,6 +117,7 @@ function drawEmptyHalftone(canvas: HTMLCanvasElement, time: number, reducedMotio
   }
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
+  const palette = getEmptyHalftonePalette(canvas);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, cssWidth, cssHeight);
   const t = time * 0.00062;
@@ -111,10 +127,10 @@ function drawEmptyHalftone(canvas: HTMLCanvasElement, time: number, reducedMotio
       : (Math.sin(t + point.phase * Math.PI * 2) + 1) / 2;
     const cluster = 0.54 + Math.pow(wave, 1.65) * 0.62;
     const radius = Math.max(0.45, point.size * cluster * 0.5);
-    const alpha = Math.min(0.72, point.alpha * (0.26 + wave * 0.72));
+    const alpha = Math.min(0.72, point.alpha * (0.26 + wave * 0.72) * palette.alphaScale);
     ctx.beginPath();
     ctx.arc(point.x * cssWidth, point.y * cssHeight, radius, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(245, 247, 250, ${alpha.toFixed(3)})`;
+    ctx.fillStyle = `rgba(${palette.rgb}, ${alpha.toFixed(3)})`;
     ctx.fill();
   }
 }

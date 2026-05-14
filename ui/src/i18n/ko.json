@@ -229,6 +229,8 @@
     "detailSettings": "세부 설정",
     "toggleShow": "세부 설정 보기",
     "toggleHide": "세부 설정 숨기기",
+    "toggleLeftShow": "왼쪽 사이드바 보기",
+    "toggleLeftHide": "왼쪽 사이드바 숨기기",
     "open": "열기",
     "close": "닫기"
   },

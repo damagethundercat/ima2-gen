@@ -89,6 +89,8 @@ import {
   HISTORY_STRIP_LAYOUT_STORAGE_KEY,
   IMAGE_MODEL_STORAGE_KEY,
   IN_FLIGHT_STORAGE_KEY,
+  LEFT_SIDEBAR_OPEN_STORAGE_KEY,
+  PROMPT_BUILDER_SESSIONS_STORAGE_KEY,
   REASONING_EFFORT_STORAGE_KEY,
   RIGHT_PANEL_OPEN_STORAGE_KEY,
   SELECTED_FILENAME_STORAGE_KEY,
@@ -140,6 +142,16 @@ export type GalleryScope = "current-session" | "all";
 function loadRightPanelOpen(): boolean {
   try {
     const raw = localStorage.getItem(RIGHT_PANEL_OPEN_STORAGE_KEY);
+    if (raw === null) return true;
+    return JSON.parse(raw) === true;
+  } catch {
+    return true;
+  }
+}
+
+function loadLeftSidebarOpen(): boolean {
+  try {
+    const raw = localStorage.getItem(LEFT_SIDEBAR_OPEN_STORAGE_KEY);
     if (raw === null) return true;
     return JSON.parse(raw) === true;
   } catch {
@@ -376,6 +388,9 @@ export type PromptBuilderMessage = {
 const PROMPT_BUILDER_DRAFT_SCOPE_ID = "draft:new";
 const MAX_PROMPT_BUILDER_ATTACHMENTS = 6;
 const MAX_PROMPT_BUILDER_TEXT_ATTACHMENT_CHARS = 20_000;
+const MAX_PROMPT_BUILDER_PERSISTED_SESSIONS = 80;
+const MAX_PROMPT_BUILDER_PERSISTED_MESSAGES = 80;
+const MAX_PROMPT_BUILDER_MESSAGE_CHARS = 80_000;
 
 export type PromptBuilderScope =
   | { kind: "draft"; id: typeof PROMPT_BUILDER_DRAFT_SCOPE_ID }
@@ -425,6 +440,116 @@ function getPromptBuilderSessionMessages(
 ): PromptBuilderMessage[] {
   return sessions[scope.id] ?? [];
 }
+
+function normalizePromptBuilderAttachment(value: unknown): PromptBuilderAttachment | null {
+  if (!value || typeof value !== "object") return null;
+  const item = value as Record<string, unknown>;
+  const kind = item.kind === "image" || item.kind === "text" || item.kind === "file" ? item.kind : null;
+  if (!kind) return null;
+  return {
+    id: typeof item.id === "string" ? item.id : `pba_${Date.now().toString(36)}`,
+    kind,
+    name: typeof item.name === "string" ? item.name : "attachment",
+    mimeType: typeof item.mimeType === "string" ? item.mimeType : "application/octet-stream",
+    size: typeof item.size === "number" && Number.isFinite(item.size) ? item.size : 0,
+    dataUrl: typeof item.dataUrl === "string" ? item.dataUrl : undefined,
+    text: typeof item.text === "string" ? item.text.slice(0, MAX_PROMPT_BUILDER_TEXT_ATTACHMENT_CHARS) : undefined,
+  };
+}
+
+function normalizePromptBuilderMessage(value: unknown): PromptBuilderMessage | null {
+  if (!value || typeof value !== "object") return null;
+  const item = value as Record<string, unknown>;
+  const role = item.role === "user" || item.role === "assistant" ? item.role : null;
+  if (!role || typeof item.content !== "string") return null;
+  const attachments = Array.isArray(item.attachments)
+    ? item.attachments.flatMap((attachment) => {
+        const normalized = normalizePromptBuilderAttachment(attachment);
+        return normalized ? [normalized] : [];
+      }).slice(0, MAX_PROMPT_BUILDER_ATTACHMENTS)
+    : undefined;
+  return {
+    id: typeof item.id === "string" ? item.id : `pbm_${Date.now().toString(36)}`,
+    role,
+    content: item.content.slice(0, MAX_PROMPT_BUILDER_MESSAGE_CHARS),
+    createdAt:
+      typeof item.createdAt === "number" && Number.isFinite(item.createdAt)
+        ? item.createdAt
+        : Date.now(),
+    model: isImageModel(item.model) ? item.model : undefined,
+    attachments,
+  };
+}
+
+function normalizePromptBuilderSessions(value: unknown): Record<string, PromptBuilderMessage[]> {
+  if (!value || typeof value !== "object") return {};
+  const entries = Object.entries(value as Record<string, unknown>)
+    .filter(([scopeId]) => scopeId === PROMPT_BUILDER_DRAFT_SCOPE_ID || scopeId.startsWith("image:"))
+    .slice(-MAX_PROMPT_BUILDER_PERSISTED_SESSIONS)
+    .flatMap(([scopeId, rawMessages]) => {
+      if (!Array.isArray(rawMessages)) return [];
+      const messages = rawMessages
+        .slice(-MAX_PROMPT_BUILDER_PERSISTED_MESSAGES)
+        .flatMap((message) => {
+          const normalized = normalizePromptBuilderMessage(message);
+          return normalized ? [normalized] : [];
+        });
+      return messages.length > 0 ? [[scopeId, messages] as const] : [];
+    });
+  return Object.fromEntries(entries);
+}
+
+function loadPromptBuilderSessions(): Record<string, PromptBuilderMessage[]> {
+  try {
+    const raw = localStorage.getItem(PROMPT_BUILDER_SESSIONS_STORAGE_KEY);
+    if (!raw) return {};
+    return normalizePromptBuilderSessions(JSON.parse(raw));
+  } catch {
+    return {};
+  }
+}
+
+function stripPromptBuilderAttachmentPayloads(
+  sessions: Record<string, PromptBuilderMessage[]>,
+): Record<string, PromptBuilderMessage[]> {
+  return Object.fromEntries(
+    Object.entries(sessions).map(([scopeId, messages]) => [
+      scopeId,
+      messages.map((message) => ({
+        ...message,
+        attachments: message.attachments?.map(({ dataUrl: _dataUrl, text: _text, ...attachment }) => attachment),
+      })),
+    ]),
+  );
+}
+
+function persistPromptBuilderSessions(sessions: Record<string, PromptBuilderMessage[]>): void {
+  const normalized = normalizePromptBuilderSessions(sessions);
+  try {
+    localStorage.setItem(PROMPT_BUILDER_SESSIONS_STORAGE_KEY, JSON.stringify(normalized));
+  } catch {
+    try {
+      localStorage.setItem(
+        PROMPT_BUILDER_SESSIONS_STORAGE_KEY,
+        JSON.stringify(stripPromptBuilderAttachmentPayloads(normalized)),
+      );
+    } catch {}
+  }
+}
+
+function shouldRetainDraftPromptBuilderSession(inFlight: PersistedInFlight[]): boolean {
+  return inFlight.some((job) => job.promptBuilderScope?.id === PROMPT_BUILDER_DRAFT_SCOPE.id);
+}
+
+function omitPromptBuilderDraftSession(
+  sessions: Record<string, PromptBuilderMessage[]>,
+): Record<string, PromptBuilderMessage[]> {
+  if (!sessions[PROMPT_BUILDER_DRAFT_SCOPE.id]) return sessions;
+  const { [PROMPT_BUILDER_DRAFT_SCOPE.id]: _draftMessages, ...rest } = sessions;
+  return rest;
+}
+
+const initialPromptBuilderSessions = loadPromptBuilderSessions();
 
 function findPromptBuilderScopeImage(state: AppState, scope: PromptBuilderScope): GenerateItem | null {
   if (scope.kind !== "image") return null;
@@ -1006,6 +1131,8 @@ type AppState = {
   addMetadataRestoreAsReference: () => void;
   rightPanelOpen: boolean;
   toggleRightPanel: () => void;
+  leftSidebarOpen: boolean;
+  toggleLeftSidebar: () => void;
   composeSheetOpen: boolean;
   composeSheetTab: ComposeSheetTab;
   openComposeSheet: (tab?: ComposeSheetTab) => void;
@@ -1425,7 +1552,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   prompt: "",
   insertedPrompts: [],
   promptBuilderMessages: [],
-  promptBuilderSessions: {},
+  promptBuilderSessions: initialPromptBuilderSessions,
   promptBuilderScope: PROMPT_BUILDER_DRAFT_SCOPE,
   promptBuilderDraft: "",
   promptBuilderModel: "gpt-5.5",
@@ -1994,6 +2121,15 @@ export const useAppStore = create<AppState>((set, get) => ({
         localStorage.setItem(RIGHT_PANEL_OPEN_STORAGE_KEY, JSON.stringify(next));
       } catch {}
       return { rightPanelOpen: next };
+    }),
+  leftSidebarOpen: loadLeftSidebarOpen(),
+  toggleLeftSidebar: () =>
+    set((s) => {
+      const next = !s.leftSidebarOpen;
+      try {
+        localStorage.setItem(LEFT_SIDEBAR_OPEN_STORAGE_KEY, JSON.stringify(next));
+      } catch {}
+      return { leftSidebarOpen: next };
     }),
   composeSheetOpen: false,
   composeSheetTab: "prompt",
@@ -3193,25 +3329,29 @@ export const useAppStore = create<AppState>((set, get) => ({
   startNewImageSession: () => {
     saveSelectedFilename(null);
     saveGenerationDefaultsPatch({ prompt: "", insertedPrompts: [] });
-    set((state) => ({
-      currentImage: null,
-      canvasOpen: false,
-      referenceImages: [],
-      canvasReferenceImage: null,
-      prompt: "",
-      insertedPrompts: [],
-      multimodePreviewFlightId: null,
-      promptBuilderScope: PROMPT_BUILDER_DRAFT_SCOPE,
-      promptBuilderMessages: [],
-      promptBuilderDraft: "",
-      promptBuilderLoading: false,
-      promptBuilderAttachments: [],
-      promptBuilderSessions: {
+    set((state) => {
+      const promptBuilderSessions = {
         ...state.promptBuilderSessions,
         [PROMPT_BUILDER_DRAFT_SCOPE.id]: [],
-      },
-      unseenGeneratedCount: 0,
-    }));
+      };
+      persistPromptBuilderSessions(promptBuilderSessions);
+      return {
+        currentImage: null,
+        canvasOpen: false,
+        referenceImages: [],
+        canvasReferenceImage: null,
+        prompt: "",
+        insertedPrompts: [],
+        multimodePreviewFlightId: null,
+        promptBuilderScope: PROMPT_BUILDER_DRAFT_SCOPE,
+        promptBuilderMessages: [],
+        promptBuilderDraft: "",
+        promptBuilderLoading: false,
+        promptBuilderAttachments: [],
+        promptBuilderSessions,
+        unseenGeneratedCount: 0,
+      };
+    });
   },
   activatePromptBuilderForImage: (item) => {
     const scope = createPromptBuilderImageScope(item);
@@ -3259,15 +3399,17 @@ export const useAppStore = create<AppState>((set, get) => ({
       ...getPromptBuilderSessionMessages(state.promptBuilderSessions, scope),
       userMessage,
     ];
+    const promptBuilderSessions = {
+      ...state.promptBuilderSessions,
+      [scope.id]: messages,
+    };
+    persistPromptBuilderSessions(promptBuilderSessions);
     set({
       promptBuilderDraft: "",
       promptBuilderLoading: true,
       promptBuilderAttachments: [],
       promptBuilderMessages: messages,
-      promptBuilderSessions: {
-        ...state.promptBuilderSessions,
-        [scope.id]: messages,
-      },
+      promptBuilderSessions,
     });
     try {
       const response = await postPromptBuilderChat({
@@ -3307,22 +3449,24 @@ export const useAppStore = create<AppState>((set, get) => ({
         response.message.content,
         response.model as PromptBuilderModel,
       );
-      set((current) => ({
-        promptBuilderSessions: {
+      set((current) => {
+        const promptBuilderMessages = [
+          ...(current.promptBuilderSessions[scope.id] ?? messages),
+          assistantMessage,
+        ];
+        const promptBuilderSessions = {
           ...current.promptBuilderSessions,
-          [scope.id]: [
-            ...(current.promptBuilderSessions[scope.id] ?? messages),
-            assistantMessage,
-          ],
-        },
-        promptBuilderMessages:
-          current.promptBuilderScope.id === scope.id
-            ? [
-                ...(current.promptBuilderSessions[scope.id] ?? messages),
-                assistantMessage,
-              ]
-            : current.promptBuilderMessages,
-      }));
+          [scope.id]: promptBuilderMessages,
+        };
+        persistPromptBuilderSessions(promptBuilderSessions);
+        return {
+          promptBuilderSessions,
+          promptBuilderMessages:
+            current.promptBuilderScope.id === scope.id
+              ? promptBuilderMessages
+              : current.promptBuilderMessages,
+        };
+      });
     } catch (error) {
       console.error("[PromptBuilder] chat failed", error);
       get().showToast(t("promptBuilder.failed"), true);
@@ -3350,13 +3494,17 @@ export const useAppStore = create<AppState>((set, get) => ({
     get().showToast(t("promptBuilder.inserted"));
   },
   clearPromptBuilderMessages: () =>
-    set((state) => ({
-      promptBuilderMessages: [],
-      promptBuilderSessions: {
+    set((state) => {
+      const promptBuilderSessions = {
         ...state.promptBuilderSessions,
         [state.promptBuilderScope.id]: [],
-      },
-    })),
+      };
+      persistPromptBuilderSessions(promptBuilderSessions);
+      return {
+        promptBuilderMessages: [],
+        promptBuilderSessions,
+      };
+    }),
 
   selectHistory: (item) => {
     const history = get().history;
@@ -4013,23 +4161,34 @@ export const useAppStore = create<AppState>((set, get) => ({
       try {
         const res = await getHistory({ limit: HISTORY_LIMIT });
         const history: GenerateItem[] = res.items.map(mapHistoryItem);
+        const retainedInFlight = get().inFlight.length > 0 ? get().inFlight : loadInFlight();
+        const retainDraftPromptBuilderSession = shouldRetainDraftPromptBuilderSession(retainedInFlight);
         saveGenerationDefaultsPatch({ prompt: "", insertedPrompts: [] });
         saveSelectedFilename(null);
-        set((state) => ({
-          history,
-          currentImage: null,
-          prompt: "",
-          insertedPrompts: [],
-          historyNextCursor: res.nextCursor,
-          loadedHistoryRetainLimit: Math.max(HISTORY_LIMIT, history.length),
-          promptBuilderScope: PROMPT_BUILDER_DRAFT_SCOPE,
-          promptBuilderMessages: getPromptBuilderSessionMessages(
-            state.promptBuilderSessions,
-            PROMPT_BUILDER_DRAFT_SCOPE,
-          ),
-          promptBuilderAttachments: [],
-          multimodePreviewFlightId: null,
-        }));
+        set((state) => {
+          const promptBuilderSessions = retainDraftPromptBuilderSession
+            ? state.promptBuilderSessions
+            : omitPromptBuilderDraftSession(state.promptBuilderSessions);
+          if (promptBuilderSessions !== state.promptBuilderSessions) {
+            persistPromptBuilderSessions(promptBuilderSessions);
+          }
+          return {
+            history,
+            currentImage: null,
+            prompt: "",
+            insertedPrompts: [],
+            historyNextCursor: res.nextCursor,
+            loadedHistoryRetainLimit: Math.max(HISTORY_LIMIT, history.length),
+            promptBuilderScope: PROMPT_BUILDER_DRAFT_SCOPE,
+            promptBuilderMessages: getPromptBuilderSessionMessages(
+              promptBuilderSessions,
+              PROMPT_BUILDER_DRAFT_SCOPE,
+            ),
+            promptBuilderSessions,
+            promptBuilderAttachments: [],
+            multimodePreviewFlightId: null,
+          };
+        });
       } catch (err) {
         console.warn("[history] load failed:", err);
       }
@@ -4504,6 +4663,9 @@ async function addHistory(
           [scope.id]: sourceMessages,
         }
       : state.promptBuilderSessions;
+  if (promptBuilderSessions !== state.promptBuilderSessions) {
+    persistPromptBuilderSessions(promptBuilderSessions);
+  }
   saveSelectedFilename(merged.filename ?? null);
   set({
     history,

@@ -51,6 +51,7 @@ export default function App() {
   const settingsOpen = useAppStore((s) => s.settingsOpen);
   const unseenGeneratedCount = useAppStore((s) => s.unseenGeneratedCount);
   const historyStripLayout = useAppStore((s) => s.historyStripLayout);
+  const leftSidebarOpen = useAppStore((s) => s.leftSidebarOpen);
   const syncThemeFromStorage = useAppStore((s) => s.syncThemeFromStorage);
   const syncThemeFamilyFromStorage = useAppStore((s) => s.syncThemeFamilyFromStorage);
   const refreshResolvedTheme = useAppStore((s) => s.refreshResolvedTheme);
@@ -61,6 +62,7 @@ export default function App() {
         "classic";
   const isMobile = useIsMobile();
   const showHistoryStrip = uiMode === "card-news" || isMobile;
+  const leftSidebarCollapsed = !isMobile && !leftSidebarOpen;
 
   useBrowserAttentionBadge(unseenGeneratedCount);
 
@@ -115,6 +117,8 @@ export default function App() {
     <>
       <div
         className={`app${settingsOpen ? " app--settings-open" : ""}${
+          leftSidebarCollapsed ? " app--left-sidebar-collapsed" : ""
+        }${
           showHistoryStrip && historyStripLayout === "horizontal" ? " app--history-horizontal" : ""
         }${
           showHistoryStrip && historyStripLayout === "sidebar" ? " app--history-sidebar" : ""

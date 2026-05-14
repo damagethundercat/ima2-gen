@@ -65,9 +65,23 @@ export function SidebarStack() {
 }
 
 export function Sidebar() {
+  const { t } = useI18n();
+  const leftSidebarOpen = useAppStore((s) => s.leftSidebarOpen);
+  const toggleLeftSidebar = useAppStore((s) => s.toggleLeftSidebar);
+
   return (
-    <aside className="sidebar">
-      <div className="sidebar__scroll">
+    <aside className={`sidebar${leftSidebarOpen ? "" : " collapsed"}`}>
+      <button
+        type="button"
+        className="left-sidebar-toggle"
+        aria-expanded={leftSidebarOpen}
+        aria-controls="left-sidebar-body"
+        onClick={toggleLeftSidebar}
+        title={leftSidebarOpen ? t("panel.toggleLeftHide") : t("panel.toggleLeftShow")}
+      >
+        {leftSidebarOpen ? "<" : ">"}
+      </button>
+      <div id="left-sidebar-body" className="sidebar__scroll" hidden={!leftSidebarOpen}>
         <SidebarStack />
       </div>
     </aside>

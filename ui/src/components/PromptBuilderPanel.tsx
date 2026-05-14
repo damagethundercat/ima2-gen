@@ -58,8 +58,6 @@ export function PromptBuilderPanel({ variant = "panel" }: PromptBuilderPanelProp
   const setPrompt = useAppStore((s) => s.setPrompt);
   const insertPromptToComposer = useAppStore((s) => s.insertPromptToComposer);
   const showToast = useAppStore((s) => s.showToast);
-  const applyToPrompt = useAppStore((s) => s.applyPromptBuilderMessageToPrompt);
-  const insertAsBlock = useAppStore((s) => s.insertPromptBuilderMessageAsBlock);
   const clearMessages = useAppStore((s) => s.clearPromptBuilderMessages);
   const messagesRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -252,22 +250,17 @@ export function PromptBuilderPanel({ variant = "panel" }: PromptBuilderPanelProp
                   ))}
                 </div>
               ) : null}
-              {message.role === "assistant" && (
-                <div className="prompt-builder__message-actions">
-                  <button type="button" onClick={() => applyToPrompt(message.id)}>
-                    {t("promptBuilder.applyToPrompt")}
-                  </button>
-                  <button type="button" onClick={() => insertAsBlock(message.id)}>
-                    {t("promptBuilder.insertAsBlock")}
-                  </button>
-                </div>
-              )}
             </article>
           );
         })}
         {loading && (
-          <div className="prompt-builder__thinking">
-            {t("promptBuilder.thinking")}
+          <div className="prompt-builder__thinking" role="status" aria-live="polite">
+            <span className="prompt-builder__thinking-dots" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </span>
+            <span>{t("promptBuilder.thinking")}</span>
           </div>
         )}
       </div>

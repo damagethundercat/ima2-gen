@@ -229,6 +229,8 @@
     "detailSettings": "Settings",
     "toggleShow": "Show settings",
     "toggleHide": "Hide settings",
+    "toggleLeftShow": "Show left sidebar",
+    "toggleLeftHide": "Hide left sidebar",
     "open": "Open",
     "close": "Close"
   },

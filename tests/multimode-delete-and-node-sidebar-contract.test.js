@@ -45,7 +45,7 @@ describe("multimode delete and node sidebar history contract", () => {
     assert.match(rightPanel, /effectiveUiMode === "classic" \|\| effectiveUiMode === "node"/);
     assert.match(css, /\.sidebar-history__gallery-card\s*\{[\s\S]*?height:\s*148px/);
     assert.match(css, /\.sidebar-history__gallery-card\s*\{[\s\S]*?aspect-ratio:\s*6\s*\/\s*5/);
-    assert.match(css, /\.app\[data-ui-mode="node"\]:not\(\[data-mobile="1"\]\)[\s\S]*?grid-template-columns:\s*260px minmax\(0,\s*1fr\) auto/);
+    assert.match(css, /\.app\[data-ui-mode="node"\]:not\(\[data-mobile="1"\]\)[\s\S]*?grid-template-columns:\s*var\(--left-sidebar-w\) minmax\(0,\s*1fr\) auto/);
     assert.match(css, /\.app\[data-ui-mode="node"\]:not\(\[data-mobile="1"\]\) \.node-canvas[\s\S]*?grid-column:\s*2/);
     assert.match(css, /\.app\[data-ui-mode="node"\]:not\(\[data-mobile="1"\]\) \.right-panel[\s\S]*?grid-column:\s*3/);
   });

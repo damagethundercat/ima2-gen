@@ -75,11 +75,16 @@ describe("prompt builder UI contract", () => {
     assert.match(panel, /role="option"/);
     assert.doesNotMatch(panel, /<select/);
     assert.match(panel, /sendPromptBuilderMessage/);
-    assert.match(panel, /applyPromptBuilderMessageToPrompt/);
-    assert.match(panel, /insertPromptBuilderMessageAsBlock/);
+    assert.doesNotMatch(panel, /applyPromptBuilderMessageToPrompt/);
+    assert.doesNotMatch(panel, /insertPromptBuilderMessageAsBlock/);
     assert.match(panel, /extractPromptBuilderFinalPrompts/);
     assert.match(panel, /prompt-builder__structured-prompts/);
     assert.match(panel, /prompt-builder__structured-card/);
+    assert.match(panel, /prompt-builder__structured-actions/);
+    assert.doesNotMatch(panel, /prompt-builder__message-actions/);
+    assert.match(panel, /className="prompt-builder__thinking"/);
+    assert.match(panel, /role="status"/);
+    assert.match(panel, /prompt-builder__thinking-dots/);
     assert.match(panel, /insertPromptToComposer/);
     assert.match(panel, /gpt-5\.5/);
     assert.match(panel, /gpt-5\.4-mini/);
@@ -120,6 +125,10 @@ describe("prompt builder UI contract", () => {
     assert.match(css, /\.prompt-builder__model-chevron/);
     assert.match(css, /\.prompt-builder__structured-prompts/);
     assert.match(css, /\.prompt-builder__structured-card/);
+    assert.match(css, /\.prompt-builder__message--assistant/);
+    assert.match(css, /\.prompt-builder__thinking-dots/);
+    assert.match(css, /@keyframes prompt-builder-thinking-dot/);
+    assert.doesNotMatch(css, /\.prompt-builder__message-actions/);
     assert.match(css, /\.composer--bottom \.composer__content-rail/);
     assert.match(css, /\.composer--bottom \.composer__prompt-flow/);
 

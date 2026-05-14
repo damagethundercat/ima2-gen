@@ -1,6 +1,7 @@
 export const PERSISTED_KEYS = [
   // layout
   "ima2.rightPanelOpen",
+  "ima2.leftSidebarOpen",
   "ima2.uiMode",
   "ima2.historyStripLayout",
   // theme
@@ -24,27 +25,31 @@ export const PERSISTED_KEYS = [
   "ima2.galleryDefaultScope",
   // i18n
   "ima2.locale",
+  // prompt builder
+  "ima2.promptBuilderSessions",
 ] as const;
 
 export type PersistedKey = (typeof PERSISTED_KEYS)[number];
 
 export const RIGHT_PANEL_OPEN_STORAGE_KEY = PERSISTED_KEYS[0];
-export const UI_MODE_STORAGE_KEY = PERSISTED_KEYS[1];
-export const HISTORY_STRIP_LAYOUT_STORAGE_KEY = PERSISTED_KEYS[2];
-export const THEME_STORAGE_KEY = PERSISTED_KEYS[3];
-export const THEME_FAMILY_STORAGE_KEY = PERSISTED_KEYS[4];
-export const CANVAS_EXPORT_BG_KEY = PERSISTED_KEYS[5];
-export const IMAGE_MODEL_STORAGE_KEY = PERSISTED_KEYS[6];
-export const REASONING_EFFORT_STORAGE_KEY = PERSISTED_KEYS[7];
-export const WEB_SEARCH_STORAGE_KEY = PERSISTED_KEYS[8];
-export const GENERATION_DEFAULTS_STORAGE_KEY = PERSISTED_KEYS[9];
-export const IN_FLIGHT_STORAGE_KEY = PERSISTED_KEYS[10];
-export const SELECTED_FILENAME_STORAGE_KEY = PERSISTED_KEYS[11];
-export const ACTIVE_SESSION_ID_STORAGE_KEY = PERSISTED_KEYS[12];
-export const GRAPH_TAB_ID_KEY = PERSISTED_KEYS[13];
-export const GALLERY_SCOPE_STORAGE_KEY = PERSISTED_KEYS[14];
-export const GALLERY_DEFAULT_SCOPE_STORAGE_KEY = PERSISTED_KEYS[15];
-export const LOCALE_STORAGE_KEY = PERSISTED_KEYS[16];
+export const LEFT_SIDEBAR_OPEN_STORAGE_KEY = PERSISTED_KEYS[1];
+export const UI_MODE_STORAGE_KEY = PERSISTED_KEYS[2];
+export const HISTORY_STRIP_LAYOUT_STORAGE_KEY = PERSISTED_KEYS[3];
+export const THEME_STORAGE_KEY = PERSISTED_KEYS[4];
+export const THEME_FAMILY_STORAGE_KEY = PERSISTED_KEYS[5];
+export const CANVAS_EXPORT_BG_KEY = PERSISTED_KEYS[6];
+export const IMAGE_MODEL_STORAGE_KEY = PERSISTED_KEYS[7];
+export const REASONING_EFFORT_STORAGE_KEY = PERSISTED_KEYS[8];
+export const WEB_SEARCH_STORAGE_KEY = PERSISTED_KEYS[9];
+export const GENERATION_DEFAULTS_STORAGE_KEY = PERSISTED_KEYS[10];
+export const IN_FLIGHT_STORAGE_KEY = PERSISTED_KEYS[11];
+export const SELECTED_FILENAME_STORAGE_KEY = PERSISTED_KEYS[12];
+export const ACTIVE_SESSION_ID_STORAGE_KEY = PERSISTED_KEYS[13];
+export const GRAPH_TAB_ID_KEY = PERSISTED_KEYS[14];
+export const GALLERY_SCOPE_STORAGE_KEY = PERSISTED_KEYS[15];
+export const GALLERY_DEFAULT_SCOPE_STORAGE_KEY = PERSISTED_KEYS[16];
+export const LOCALE_STORAGE_KEY = PERSISTED_KEYS[17];
+export const PROMPT_BUILDER_SESSIONS_STORAGE_KEY = PERSISTED_KEYS[18];
 
 export const PERSISTED_REGISTRY: Record<
   PersistedKey,
@@ -55,6 +60,7 @@ export const PERSISTED_REGISTRY: Record<
   }
 > = {
   "ima2.rightPanelOpen": { domain: "layout", shape: "json:boolean", resetSafe: true },
+  "ima2.leftSidebarOpen": { domain: "layout", shape: "json:boolean", resetSafe: true },
   "ima2.uiMode": { domain: "layout", shape: "string", resetSafe: true },
   "ima2.historyStripLayout": { domain: "layout", shape: "string", resetSafe: true },
   "ima2:theme": { domain: "theme", shape: "string", resetSafe: true },
@@ -71,4 +77,5 @@ export const PERSISTED_REGISTRY: Record<
   "ima2.galleryScope": { domain: "gallery", shape: "string", resetSafe: true },
   "ima2.galleryDefaultScope": { domain: "gallery", shape: "string", resetSafe: true },
   "ima2.locale": { domain: "i18n", shape: "string", resetSafe: true },
+  "ima2.promptBuilderSessions": { domain: "runtime", shape: "json:PromptBuilderSessions", resetSafe: true },
 };
