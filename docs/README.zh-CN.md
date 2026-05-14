@@ -4,6 +4,14 @@
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](../LICENSE)
 
+<p align="center">
+  <a href="../assets/screenshots/tutorial1-readme.mp4">
+    <img src="../assets/screenshots/tutorial1-readme.gif" alt="ima2-genX 43 秒教程视频">
+  </a>
+  <br>
+  <a href="../assets/screenshots/tutorial1-readme.mp4"><strong>观看 43 秒教程视频</strong></a>
+</p>
+
 > **其他语言**: [English](../README.md) · [한국어](README.ko.md) · [日本語](README.ja.md)
 
 `ima2-genX` 是一个本地图像生成工作室，让你像使用桌面应用一样操作 ChatGPT/Codex 图像生成流程。你可以从粗略想法开始，用 Prompt Builder 整理提示词，再通过历史记录、参考图、节点分支、multimode 批量候选和仍在改进中的 Canvas Mode cleanup tools 继续迭代。
@@ -13,8 +21,7 @@
 >
 > 产品名是 `ima2-genX`。为了保持安装与更新连续性，npm package 仍为 `@damagethundercat/ima2-gen`；CLI command 仍为 `ima2x`，以避免覆盖 upstream 的 `ima2` 命令。
 
-<!-- Screenshot refresh: 稍后替换为新的 ima2-genX 主工作流截图。 -->
-![显示 prompt composer、生成图、模型标签和结果元数据的 ima2-genX classic 界面](../assets/screenshots/classic-generate-light.png)
+![显示 prompt composer、生成图、历史记录和结果控制的 ima2-genX dark-mode classic 界面](../assets/screenshots/classic-darkmode.png)
 
 ## 快速开始
 
@@ -79,14 +86,13 @@ Quality 支持 `low`, `medium`, `high`；moderation 支持 `auto`, `low`。
 4. 生成一张图，或用 multimode 同时生成多个候选。
 5. 从最好的 result 继续，进入 Node mode 分支，或尝试当前的 Canvas Mode cleanup tools。
 
-<!-- Screenshot refresh: 稍后替换为显示 Prompt Builder 的主工作流截图。 -->
-![一个 prompt 正在生成多个 candidate slots，sidebar 中显示 active job history 的 multimode sequence 界面](../assets/screenshots/multimode-sequence.png)
+![显示 Prompt Builder、多个 candidate slots、active job history 和 follow-up controls 的 multimode 界面](../assets/screenshots/multimode.png)
 
 ### Node mode
 
 适合将创意分支发散并进行对比。每个 node 都有自己的 prompt 和 result。完成的 jobs 会通过 request ID 重新匹配，因此刷新或 graph version conflict 后也能恢复结果。
 
-![显示连接节点、生成卡片和节点元数据的 Node mode 界面](../assets/screenshots/node-graph-branching.png)
+![显示分支生成卡片、节点元数据和侧边控制面板的 Node mode graph 界面](../assets/screenshots/node-graph.png)
 
 ### Canvas Mode
 
@@ -100,9 +106,9 @@ Canvas Mode 已经包含在当前版本中，但在 `ima2-genX` 中仍处于 act
 
 ### Prompt Builder, Library, And Imports
 
-Prompt Builder 把 intent 整理成 generation-ready prompt；Prompt library 保存可复用的 prompt material。Library 可以从 local files、GitHub folders、curated sources 和 GPT-image hint packs 导入。导入后的 prompts 会写入 local index，因此之后仍可搜索和 ranking。
+Prompt Builder 把 intent 整理成 generation-ready prompt；Prompt library 保存可复用的 prompt material。增强后的 Library 界面更适合浏览和搜索 imported prompts，也可以从 local files、GitHub folders、curated sources 和 GPT-image hint packs 导入。导入后的 prompts 会写入 local index，因此之后仍可搜索和 ranking。
 
-![导入到 prompt library 前用于查看 GitHub folder、curated sources 和搜索候选 prompt 的 dialog](../assets/screenshots/prompt-import-dialog.png)
+![显示可复用 prompts、搜索、标签和 import controls 的 Prompt library 界面](../assets/screenshots/prompt-library.png)
 
 ## CLI 命令
 

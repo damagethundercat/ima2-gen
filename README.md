@@ -8,6 +8,14 @@
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
+<p align="center">
+  <a href="assets/screenshots/tutorial1-readme.mp4">
+    <img src="assets/screenshots/tutorial1-readme.gif" alt="ima2-genX 43-second tutorial walkthrough">
+  </a>
+  <br>
+  <a href="assets/screenshots/tutorial1-readme.mp4"><strong>Watch the 43-second tutorial walkthrough</strong></a>
+</p>
+
 `ima2-genX` is a local image generation studio for people who want a faster, more controllable ChatGPT/Codex image workflow in a desktop-like web app.
 
 > **Fork note**
@@ -17,8 +25,7 @@
 
 Run it with `npx`, sign in with Codex OAuth, start from a rough prompt, refine it with the built-in Prompt Builder, and keep iterating through history, references, node branches, multimode batches, and the evolving Canvas Mode cleanup tools. No OpenAI API key is required for the default path, but API-key generation is also supported when configured.
 
-<!-- Screenshot refresh: replace this with the new ima2-genX main workflow capture when ready. -->
-![ima2-genX classic generation screen with prompt composer, generated image, compact model label, and result metadata.](assets/screenshots/classic-generate-light.png)
+![ima2-genX classic dark-mode generation screen with prompt composer, generated image, history, and result controls.](assets/screenshots/classic-darkmode.png)
 
 ## Quick Start
 
@@ -61,7 +68,7 @@ persists, reboot and run the update before starting ima2x again.
 - **Canvas Mode, in progress**: current builds include zoom, pan, annotation, eraser, background cleanup, and export tools, but this area is still being actively improved and may change across upcoming releases.
 - **Local gallery**: keep generated assets on your machine with session-aware history. By default the gallery shows the current session and an All Images toggle reveals the full history; the default scope is sticky across sessions.
 - **Reference images**: drag, drop, paste, and attach up to 5 references; large images are compressed before upload.
-- **Prompt library imports**: import local prompt packs, GitHub folders, and curated GPT-image prompt hints into the built-in prompt library.
+- **Prompt library and imports**: search reusable prompt material, import local prompt packs, GitHub folders, and curated GPT-image prompt hints into the built-in prompt library.
 - **Observable jobs**: active and recent jobs are tracked with safe logs and request IDs.
 
 ## What Changed From Upstream
@@ -108,8 +115,7 @@ Use the Prompt Builder when you have an idea but want a cleaner generation promp
 4. Generate one image, or enable multimode to fan out several candidate slots from the same refined prompt.
 5. Continue from the strongest result, branch it in Node mode, or try the current Canvas Mode cleanup tools.
 
-<!-- Screenshot refresh: replace with a capture that shows Prompt Builder in the main workflow. -->
-![Multimode sequence with four candidate slots generating from one prompt and active job history in the sidebar.](assets/screenshots/multimode-sequence.png)
+![Multimode workflow showing the Prompt Builder, candidate slots, active job history, and follow-up controls.](assets/screenshots/multimode.png)
 
 ### Classic Mode
 
@@ -119,8 +125,7 @@ Use Classic when you want one strong result quickly, with or without the builder
 
 Use Node mode when you want to explore branches.
 
-<!-- Screenshot refresh: replace after the ima2-genX Node mode capture is ready. -->
-![Node mode with connected generated cards and compact per-node metadata.](assets/screenshots/node-graph-branching.png)
+![Node mode graph with branching generated cards, node metadata, and side-panel controls.](assets/screenshots/node-graph.png)
 
 Each node keeps its own prompt and result. Root nodes can attach local references; child nodes use the parent image as their source. Completed jobs are matched back to nodes by request ID, so reloads and graph version conflicts can recover finished results.
 
@@ -137,10 +142,9 @@ Canvas Mode is included, but in `ima2-genX` it is still under active improvement
 
 ### Prompt Builder, Library, And Imports
 
-The Prompt Builder helps turn an intent into a generation-ready prompt, while the prompt library stores reusable prompt material. The library can be filled from local files, GitHub folders, curated sources, and GPT-image hint packs. Imported prompts are indexed locally so search and ranking work without re-importing the same source every session.
+The Prompt Builder helps turn an intent into a generation-ready prompt, while the prompt library stores reusable prompt material. The library now gives imported prompts a stronger browsing and search surface, and it can be filled from local files, GitHub folders, curated sources, and GPT-image hint packs. Imported prompts are indexed locally so search and ranking work without re-importing the same source every session.
 
-<!-- Screenshot refresh: replace after the ima2-genX prompt workflow capture is ready. -->
-![Prompt import dialog for bringing prompts into the library, showing GitHub folder controls, curated sources, and searched prompt candidates before import.](assets/screenshots/prompt-import-dialog.png)
+![Prompt library workspace showing reusable prompts, search, tags, and import controls.](assets/screenshots/prompt-library.png)
 
 ### Experimental Card News Mode
 

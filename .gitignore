@@ -18,3 +18,6 @@ __pycache__/
 /bin/ima2.js
 /bin/commands/*.js
 /bin/lib/*.js
+
+# Large local source captures; commit compressed README assets instead.
+/assets/screenshots/tutorial1.mp4
