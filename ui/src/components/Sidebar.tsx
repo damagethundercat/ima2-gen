@@ -28,7 +28,6 @@ export function SidebarStack() {
           <div className="logo-subtitle">gpt-image-2 studio</div>
         </div>
         <div className="logo-actions">
-          <PromptLibraryButton />
           <ImageModelSelect variant="sidebar" />
           <SettingsButton />
         </div>
@@ -104,31 +103,6 @@ function NewImageSessionButton() {
       aria-label={t("history.newImageSessionTitle")}
     >
       <span aria-hidden="true">+</span>
-    </button>
-  );
-}
-
-function PromptLibraryButton() {
-  const { t } = useI18n();
-  const setPromptLibraryOpen = useAppStore((s) => s.setPromptLibraryOpen);
-  const rightPanelOpen = useAppStore((s) => s.rightPanelOpen);
-  const toggleRightPanel = useAppStore((s) => s.toggleRightPanel);
-  const openPromptLibrary = () => {
-    if (!rightPanelOpen) toggleRightPanel();
-    setPromptLibraryOpen(true);
-  };
-
-  return (
-    <button
-      type="button"
-      className="settings-button"
-      onClick={openPromptLibrary}
-      title={t("promptLibrary.title")}
-      aria-label={t("promptLibrary.title")}
-    >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-      </svg>
     </button>
   );
 }

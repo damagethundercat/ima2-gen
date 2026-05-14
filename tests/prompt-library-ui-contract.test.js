@@ -112,6 +112,7 @@ describe("prompt library UI contract", () => {
     const modal = readSource("ui/src/components/PromptDetailModal.tsx");
     const composer = readSource("ui/src/components/PromptComposer.tsx");
     const sidebar = readSource("ui/src/components/Sidebar.tsx");
+    const rightPanel = readSource("ui/src/components/RightPanel.tsx");
     const store = readSource("ui/src/store/useAppStore.ts");
     const actions = readSource("ui/src/components/ResultActions.tsx");
     const css = readSource("ui/src/index.css");
@@ -147,8 +148,12 @@ describe("prompt library UI contract", () => {
     assert.match(actions, /id:\s*CANVAS_MODE_PROMPT_ID/);
     assert.match(actions, /name:\s*CANVAS_MODE_PROMPT_NAME/);
     assert.match(actions, /text:\s*CANVAS_MODE_PROMPT_TEXT/);
-    assert.match(sidebar, /rightPanelOpen/);
-    assert.match(sidebar, /toggleRightPanel/);
+    assert.doesNotMatch(sidebar, /PromptLibraryButton/);
+    assert.doesNotMatch(sidebar, /setPromptLibraryOpen/);
+    assert.doesNotMatch(sidebar, /toggleRightPanel/);
+    assert.doesNotMatch(sidebar, /promptLibrary\.title/);
+    assert.match(rightPanel, /setPromptLibraryOpen\(true\)/);
+    assert.match(rightPanel, /<LazyPromptLibraryPanel variant="embedded" \/>/);
 
     assert.match(css, /\.prompt-library-row__insert/);
     assert.match(css, /\.prompt-detail-modal__insert/);
