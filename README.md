@@ -29,7 +29,9 @@ Run it with `npx`, sign in with Codex OAuth, type a prompt, and keep iterating w
 npx @damagethundercat/ima2-gen serve
 ```
 
-Then open `http://localhost:3333`.
+The web UI opens automatically when the server is ready. If you are running in
+a headless terminal or want to open it manually, use `--no-open` and visit the
+printed URL.
 
 If Codex is not logged in yet:
 
@@ -145,7 +147,7 @@ The settings workspace keeps account, model, appearance, and language controls a
 
 | Command | Description |
 |---|---|
-| `ima2x serve [--dev]` | Start the local web server; `--dev` enables verbose server diagnostics |
+| `ima2x serve [--dev] [--no-open]` | Start the local web server and open the web UI; `--dev` enables verbose server diagnostics; `--no-open` keeps the browser closed |
 | `ima2x setup` | Reconfigure saved auth |
 | `ima2x status` | Show config and OAuth status |
 | `ima2x doctor` | Diagnose Node, package, config, and auth |

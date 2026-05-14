@@ -8,7 +8,7 @@ For a quick start, see the [main README](../README.md). For endpoint mapping, se
 
 | Command | Description |
 |---|---|
-| `ima2x serve [--dev]` | Start the local web server; `--dev` enables verbose server diagnostics |
+| `ima2x serve [--dev] [--no-open]` | Start the local web server and open the web UI; `--dev` enables verbose server diagnostics; `--no-open` keeps the browser closed |
 | `ima2x setup` / `ima2x login` | Reconfigure saved auth (interactive) |
 | `ima2x status` | Show config and OAuth status |
 | `ima2x doctor` | Diagnose Node, package, config, and auth |

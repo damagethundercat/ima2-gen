@@ -45,7 +45,7 @@ describe("ima2x CLI", () => {
   it("should show help when no command given", async () => {
     const { stdout } = await runCLI([]);
     assert.ok(stdout.includes("Usage:"), "help should include Usage");
-    assert.ok(stdout.includes("serve [--dev]"), "help should mention serve --dev");
+    assert.ok(stdout.includes("serve [--dev] [--no-open]"), "help should mention serve --no-open");
     assert.ok(stdout.includes("status"), "help should mention status");
     assert.ok(stdout.includes("doctor"), "help should mention doctor");
   });
@@ -54,7 +54,7 @@ describe("ima2x CLI", () => {
     const { stdout, code } = await runCLI(["--help"]);
     assert.strictEqual(code, 0, "--help should exit 0");
     assert.ok(stdout.includes("commands:"), "help should list commands");
-    assert.ok(stdout.includes("serve [--dev]"), "help should mention serve --dev");
+    assert.ok(stdout.includes("serve [--dev] [--no-open]"), "help should mention serve --no-open");
     assert.ok(stdout.includes("version"), "help should mention version");
   });
 

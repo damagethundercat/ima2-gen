@@ -4,7 +4,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { createRequire } from "module";
-import { spawn, execSync } from "child_process";
+import { spawn, execSync, type ChildProcess } from "child_process";
 import { openUrl, resolveBin } from "./lib/platform.js";
 import { maybePromptGithubStar } from "./lib/star-prompt.js";
 import { buildStorageDoctorLines } from "./lib/storage-doctor.js";
@@ -22,6 +22,8 @@ const CLI_NAME = "ima2x";
 const CONFIG_DIR = runtimeConfig.storage.configDir;
 const CONFIG_FILE = runtimeConfig.storage.configFile;
 const LEGACY_CONFIG_FILE = join(ROOT, ".ima2", "config.json");
+const SERVE_OPEN_TIMEOUT_MS = 15_000;
+const SERVE_OPEN_POLL_MS = 150;
 
 // Load package.json for version
 let pkg = { version: "?", name: "@damagethundercat/ima2-gen" };
@@ -58,6 +60,31 @@ function loadAdvertisement() {
 function advertisedServerUrl() {
   const adv = loadAdvertisement();
   return adv?.backend?.url || adv?.url || (adv?.port ? `http://localhost:${adv.port}` : null);
+}
+
+function advertisedUrlFrom(adv: any) {
+  return adv?.backend?.url || adv?.url || (adv?.port ? `http://localhost:${adv.port}` : null);
+}
+
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => {
+    const timer = setTimeout(resolve, ms);
+    timer.unref?.();
+  });
+}
+
+async function waitForCurrentServerUrl(child: ChildProcess, timeoutMs = SERVE_OPEN_TIMEOUT_MS) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const adv = loadAdvertisement();
+    if (adv?.pid === child.pid) {
+      const url = advertisedUrlFrom(adv);
+      if (url) return url;
+    }
+    if (child.exitCode !== null) return null;
+    await sleep(SERVE_OPEN_POLL_MS);
+  }
+  return null;
 }
 
 function missingRuntimeDeps() {
@@ -166,6 +193,10 @@ async function serve(serveArgs: string[] = []) {
 
   const env = { ...process.env };
   const serveDev = serveArgs.includes("--dev");
+  const serveNoOpen =
+    serveArgs.includes("--no-open")
+    || env.IMA2_NO_OPEN === "1"
+    || env.NO_BROWSER === "1";
   if (serveDev) {
     env.IMA2_DEV = "1";
     env.IMA2_LOG_LEVEL = env.IMA2_LOG_LEVEL || "debug";
@@ -181,6 +212,10 @@ async function serve(serveArgs: string[] = []) {
     env,
     cwd: ROOT,
   });
+
+  if (!serveNoOpen) {
+    openBrowserWhenReady(child);
+  }
 
   child.on("exit", (code) => process.exit(code));
 
@@ -300,14 +335,24 @@ async function doctor() {
   process.exit(fail > 0 ? 1 : 0);
 }
 
-function openBrowser() {
-  const url = advertisedServerUrl() || `http://localhost:${runtimeConfig.server.port}`;
-  const res = openUrl(url);
+function openBrowser(url?: string) {
+  const targetUrl = url || advertisedServerUrl() || `http://localhost:${runtimeConfig.server.port}`;
+  const res = openUrl(targetUrl);
   if (res.ok) {
-    console.log(`\n  Opening ${url} ...\n`);
+    console.log(`\n  Opening ${targetUrl} ...\n`);
   } else {
-    console.log(`\n  Could not open browser. Visit: ${url}\n`);
+    console.log(`\n  Could not open browser. Visit: ${targetUrl}\n`);
   }
+}
+
+function openBrowserWhenReady(child: ChildProcess) {
+  void waitForCurrentServerUrl(child).then((url) => {
+    if (!url || child.exitCode !== null) return;
+    openBrowser(url);
+  }).catch((e) => {
+    const err = errInfo(e);
+    console.log(`\n  Could not auto-open browser. Run '${CLI_NAME} open' or visit the URL above. (${err.message || err.raw})\n`);
+  });
 }
 
 function showHelp() {
@@ -317,7 +362,7 @@ function showHelp() {
   Usage: ${CLI_NAME} <command> [options]
 
   Server commands:
-    serve [--dev]  Start the image generation server
+    serve [--dev] [--no-open]  Start the image generation server
     setup, login   Configure API key or OAuth (interactive)
     status         Show current configuration status
     doctor         Diagnose environment and setup
@@ -357,7 +402,8 @@ function showHelp() {
     -h, --help     Show help
 
   Examples:
-    ${CLI_NAME} serve                       Start server
+    ${CLI_NAME} serve                       Start server and open web UI
+    ${CLI_NAME} serve --no-open             Start server without opening browser
     ${CLI_NAME} serve --dev                 Start with verbose server diagnostics
     ${CLI_NAME} gen "a shiba in space"      Generate from CLI
     ${CLI_NAME} gen "merge" --ref a.png --ref b.png -q high -o out.png
