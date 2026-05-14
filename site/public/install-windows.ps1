@@ -1,4 +1,4 @@
-# ima2-gen fork one-click installer (Windows / PowerShell)
+# ima2-genX one-click installer (Windows / PowerShell)
 
 $ErrorActionPreference = 'Stop'
 
@@ -28,5 +28,5 @@ else {
 Print "Installing $PkgName globally..."
 & npm install -g $PkgName
 
-Print "Starting ima2-gen fork with $CliName serve..."
+Print "Starting ima2-genX with $CliName serve..."
 & $CliName serve

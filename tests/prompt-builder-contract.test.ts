@@ -111,7 +111,7 @@ describe("prompt builder OAuth chat contract", () => {
       assert.match(capturedMessages[0]?.content ?? "", /prompt enhancement GPT specialized for GPT Image 2/);
       assert.match(capturedMessages[0]?.content ?? "", /Final Prompt - Korean:/);
       assert.match(capturedMessages[0]?.content ?? "", /Final Prompt - English:/);
-      assert.match(capturedMessages[0]?.content ?? "", /Current ima2-gen context:/);
+      assert.match(capturedMessages[0]?.content ?? "", /Current ima2-genX context:/);
     } finally {
       await server.close();
       await upstreamServer.close();

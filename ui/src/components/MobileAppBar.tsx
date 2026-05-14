@@ -22,7 +22,7 @@ export function MobileAppBar() {
       <div className="mobile-app-bar__brand">
         <div className="logo-mark" aria-hidden="true" />
         <div className="mobile-app-bar__brand-copy">
-          <span className="mobile-app-bar__title">ima2-gen</span>
+          <span className="mobile-app-bar__title">ima2-genX</span>
           <span className="mobile-app-bar__mode">{t("appBar.modeImage")}</span>
         </div>
       </div>

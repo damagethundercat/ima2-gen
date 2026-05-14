@@ -436,7 +436,7 @@ export async function requestPromptBuilderChat(ctx: RouteRuntimeContext, input: 
     const systemText = [
       PROMPT_BUILDER_SYSTEM_PROMPT,
       currentContextText
-        ? `Current ima2-gen context:\n${currentContextText}`
+        ? `Current ima2-genX context:\n${currentContextText}`
         : "",
     ].filter(Boolean).join("\n\n");
     const useResponses = hasImageAttachments(messages);

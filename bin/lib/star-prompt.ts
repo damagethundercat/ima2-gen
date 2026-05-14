@@ -81,7 +81,7 @@ export async function maybePromptGithubStar(deps: any = {}) {
   await markPromptedImpl();
 
   const askYesNoImpl = deps.askYesNoFn ?? askYesNo;
-  const approved = await askYesNoImpl("[ima2x] Enjoying ima2-gen? Star it on GitHub? [Y/n] ");
+  const approved = await askYesNoImpl("[ima2x] Enjoying ima2-genX? Star it on GitHub? [Y/n] ");
   if (!approved) return;
 
   const starRepoImpl = deps.starRepoFn ?? starRepo;

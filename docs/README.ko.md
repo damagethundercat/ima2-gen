@@ -1,18 +1,20 @@
-# ima2-gen
+# ima2-genX
 
 [![npm version](https://img.shields.io/npm/v/%40damagethundercat%2Fima2-gen)](https://www.npmjs.com/package/%40damagethundercat%2Fima2-gen)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](../LICENSE)
 
-> 🌐 **Live site**: [damagethundercat.github.io/ima2-gen](https://damagethundercat.github.io/ima2-gen/) · [한국어 페이지](https://damagethundercat.github.io/ima2-gen/ko/)
->
 > **다른 언어로 읽기**: [English](../README.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md)
 
-`ima2-gen`은 ChatGPT/Codex OAuth 이미지 생성 흐름을 로컬 웹앱처럼 쓸 수 있게 만든 이미지 생성 스튜디오입니다.
+`ima2-genX`는 ChatGPT/Codex 이미지 생성 흐름을 로컬 데스크톱 앱처럼 다루기 위한 이미지 생성 스튜디오입니다. 거친 아이디어를 Prompt Builder로 정리하고, 생성 결과를 히스토리, 레퍼런스, 노드 브랜치, 멀티모드 배치, 개선 중인 Canvas Mode 정리 도구로 계속 이어갈 수 있습니다.
 
-`npx`로 실행하고, Codex OAuth로 로그인한 뒤, 프롬프트를 입력하면서 히스토리, 레퍼런스, 노드 브랜치, 멀티모드 배치, Canvas Mode 정리 작업으로 계속 이어갈 수 있습니다. 기본 이미지 생성 경로에서는 OpenAI API 키가 필요하지 않습니다.
+> **Fork note**
+> `ima2-genX`는 [`lidge-jun/ima2-gen`](https://github.com/lidge-jun/ima2-gen)을 존중하며 이어 만든, 크게 수정된 fork입니다. 로컬 OAuth 기반 이미지 생성 흐름은 계승했지만, 제품 표면, 프롬프트 워크플로우, 갤러리 동작, multimode, Node mode, provider 처리, CLI 범위, 패키징 흐름, 그리고 개선 중인 Canvas Mode 방향은 상당히 달라졌습니다.
+>
+> 제품명은 `ima2-genX`입니다. npm 패키지는 기존 설치 경로와 업데이트 연속성을 위해 `@damagethundercat/ima2-gen`을 유지하고, CLI 명령은 upstream의 `ima2`와 충돌하지 않도록 `ima2x`를 사용합니다.
 
-![프롬프트 작성창, 생성 이미지, 모델 표시, 결과 메타데이터가 보이는 ima2-gen 클래식 생성 화면](../assets/screenshots/classic-generate-light.png)
+<!-- Screenshot refresh: 새 ima2-genX 메인 워크플로우 캡처로 교체 예정. -->
+![프롬프트 작성창, 생성 이미지, 모델 표시, 결과 메타데이터가 보이는 ima2-genX 클래식 생성 화면](../assets/screenshots/classic-generate-light.png)
 
 ## 빠른 시작
 
@@ -20,7 +22,7 @@
 npx @damagethundercat/ima2-gen serve
 ```
 
-그다음 `http://localhost:3333`을 엽니다.
+웹 UI는 서버가 준비되면 자동으로 열립니다. 직접 열고 싶다면 `--no-open`을 붙이고 터미널에 출력된 URL을 사용하세요.
 
 Codex 로그인이 아직 없다면:
 
@@ -29,7 +31,7 @@ npx @openai/codex login
 npx @damagethundercat/ima2-gen serve
 ```
 
-`3333`이 이미 사용 중이면 다음 사용 가능한 포트로 열리고 실제 URL은 `~/.ima2/server.json`에 기록됩니다. 포트를 추측하지 말고 터미널에 출력된 URL이나 `ima2x open`을 사용하세요.
+`3333`이 이미 사용 중이면 `ima2-genX`는 다음 사용 가능한 포트로 열리고 실제 URL을 `~/.ima2/server.json`에 기록합니다. 포트를 추측하지 말고 터미널에 출력된 URL이나 `ima2x open`을 사용하세요.
 
 전역 설치도 가능합니다.
 
@@ -38,124 +40,90 @@ npm install -g @damagethundercat/ima2-gen
 ima2x serve
 ```
 
-## 무엇을 할 수 있나요?
+## 무엇이 달라졌나요?
 
-- **Classic mode**: 빠르게 이미지를 만들고, 수정하고, 현재 결과를 다시 레퍼런스로 사용합니다.
-- **Node mode**: 마음에 드는 이미지를 여러 방향으로 분기해 실험합니다.
-- **Multimode batches**: 하나의 프롬프트에서 여러 후보 슬롯을 동시에 만들고, 가장 좋은 결과에서 이어갑니다.
-- **Canvas Mode**: 확대/이동, 주석, 지우개, 배경 정리, 투명 체크보드 미리보기, alpha/matte export를 지원합니다.
-- **Local gallery**: 생성물을 내 컴퓨터에 저장하고 세션별 히스토리로 봅니다.
-- **Reference images**: 레퍼런스를 드래그, 붙여넣기, 파일 선택으로 추가합니다. 큰 이미지는 업로드 전에 자동 압축됩니다.
-- **Prompt library imports**: 로컬 prompt pack, GitHub folder, curated GPT-image hint를 내장 prompt library로 가져옵니다.
-- **Mobile shell**: 작은 화면에서는 app bar, compose sheet, compact settings toggle로 조작합니다.
-- **Observable jobs**: 진행 중인 작업과 최근 완료된 작업을 request ID로 추적합니다.
+- **Prompt Builder 중심 흐름**: 거친 아이디어를 오른쪽 Prompt Builder에서 주제, 구도, 스타일, 제약 조건, 후속 의도까지 정리한 뒤 생성할 수 있습니다.
+- **ima2-genX UI**: 하단 대형 프롬프트 작성창, 이미지별 builder 세션, grouped multimode history, 개선된 이미지 뷰어, 새로 정리된 Node mode 패널을 제공합니다.
+- **Node mode**: 마음에 드는 이미지를 여러 방향으로 분기해 비교하고, 각 노드의 prompt와 결과를 따로 추적합니다.
+- **Multimode batches**: 같은 프롬프트에서 여러 후보 슬롯을 동시에 만들고, 가장 좋은 결과에서 이어갑니다.
+- **Canvas Mode, 개선 중**: 현재 빌드에는 확대, 이동, 주석, 지우개, 배경 정리, export 도구가 포함되어 있지만, `ima2-genX`에서는 아직 적극적으로 정비 중인 영역입니다. 이후 릴리스에서 UI와 동작이 바뀔 수 있습니다.
+- **Local gallery**: 생성물을 로컬에 저장하고 session-aware history로 관리합니다.
+- **Provider paths**: 기본 Codex OAuth 경로와 설정된 OpenAI API key 경로를 함께 지원합니다.
+- **CLI coverage**: `ima2x` 명령으로 생성, 편집, 히스토리, 세션, 프롬프트 라이브러리, 진행 중 작업 등을 다룹니다.
 
-## 이미지 생성은 OAuth와 API Key를 지원합니다
+## 이미지 생성 경로
 
-기본 이미지 생성은 로컬 Codex/ChatGPT OAuth 경로로 실행됩니다.
+기본 이미지 생성은 로컬 Codex/ChatGPT OAuth 경로로 실행됩니다. 기본 경로에서는 OpenAI API 키가 필요하지 않습니다.
 
-API 키가 env/config에 있으면 생성 엔드포인트에서 `provider: "api"`를 보내 Responses API `image_generation` 도구를 사용할 수 있습니다.
+API 키가 env/config에 있으면 생성 요청에서 `provider: "api"`를 사용해 OpenAI Responses API의 hosted `image_generation` tool을 호출할 수 있습니다. API-key generation은 classic generate, edit, mask-guided edit, multimode, node generation을 지원합니다.
 
-설정 화면에 **API key provider available**이 보이면, API 키가 감지됐고 생성/편집/멀티모드/노드 요청에 사용할 수 있다는 뜻입니다.
-
-![OAuth 활성화와 API 키 비활성 상태를 보여주는 설정 화면](../assets/screenshots/settings-oauth-generation.png)
+![OAuth 활성화와 API key provider available 상태를 보여주는 설정 화면](../assets/screenshots/settings-oauth-generation.png)
 
 ## 모델 안내
 
-앱 기본값은 빠른 로컬 작업(테스트)에 맞춘 **`gpt-5.4-mini`**입니다. 안정적인 균형을 원하면 **`gpt-5.4`**로 전환하는 것을 권장합니다.
+앱 기본값은 빠른 로컬 반복 작업에 맞춘 **`gpt-5.4-mini`**입니다. 안정적인 균형을 원하면 **`gpt-5.4`**를 권장합니다.
 
-- `gpt-5.4` — 추천 균형 선택지.
-- `gpt-5.4-mini` — 현재 앱 기본값이며 빠른 초안에 적합합니다.
-- `gpt-5.5` — 지원되는 환경에서는 가장 강한 품질 선택지입니다. 다만 더 많은 할당량을 쓸 수 있고, Codex CLI 업데이트가 필요하거나 계정/백엔드별 이미지 capability가 다를 수 있습니다.
+- `gpt-5.4`: 추천 균형 선택지.
+- `gpt-5.4-mini`: 현재 기본값이며 빠른 초안에 적합합니다.
+- `gpt-5.5`: 지원되는 환경에서는 가장 강한 품질 선택지입니다. 다만 더 많은 할당량을 쓸 수 있고, Codex CLI 업데이트가 필요하거나 계정/백엔드별 이미지 capability가 다를 수 있습니다.
 
 품질은 `low`, `medium`, `high`, 모더레이션은 `auto`, `low`를 지원합니다.
 
 ## 주요 흐름
 
-### Classic mode
+### Prompt Builder에서 이미지까지
 
-한 장을 빠르게 뽑고 다듬고 싶을 때 사용합니다.
+1. 하단 composer에 거친 아이디어를 씁니다.
+2. Prompt Builder로 subject, composition, style, constraints, follow-up intent를 정리합니다.
+3. 필요하면 reference를 붙이거나 현재 이미지를 다음 단계의 기준으로 재사용합니다.
+4. 한 장을 생성하거나 multimode로 여러 후보를 동시에 만듭니다.
+5. 가장 좋은 결과에서 계속 생성하거나, Node mode로 분기하거나, 현재 Canvas Mode 정리 도구를 사용해봅니다.
 
-1. 프롬프트를 씁니다.
-2. 필요하면 레퍼런스를 붙입니다.
-3. 모델, 품질, 크기, 포맷, 모더레이션을 고릅니다.
-4. 한 장을 만들거나, multimode를 켜서 같은 프롬프트에서 여러 후보 슬롯을 만듭니다.
-5. 생성 후 복사, 다운로드, 이어서 작업, Canvas Mode 정리를 선택합니다.
-
-![하나의 프롬프트에서 네 후보 슬롯이 생성 중이고 sidebar에 active job history가 보이는 multimode sequence 화면](../assets/screenshots/multimode-sequence.png)
+<!-- Screenshot refresh: Prompt Builder가 보이는 메인 워크플로우 캡처로 교체 예정. -->
+![하나의 프롬프트에서 여러 후보 슬롯이 생성 중이고 sidebar에 active job history가 보이는 multimode sequence 화면](../assets/screenshots/multimode-sequence.png)
 
 ### Node mode
 
-아이디어를 가지치기하면서 비교하고 싶을 때 사용합니다.
+아이디어를 가지치기하면서 비교하고 싶을 때 사용합니다. 각 노드는 자기 prompt와 결과를 가지며, 완료된 작업은 request ID로 다시 매칭되어 새로고침이나 graph version conflict 뒤에도 결과를 복구할 수 있습니다.
 
-![연결된 생성 카드와 노드별 메타데이터가 보이는 노드 모드 화면](../assets/screenshots/node-graph-branching.png)
-
-각 노드는 자기 프롬프트와 결과를 가집니다. 루트 노드는 로컬 레퍼런스를 붙일 수 있고, 자식 노드는 부모 이미지를 소스로 사용합니다. 완료된 작업은 request ID로 다시 매칭되므로 새로고침이나 그래프 버전 충돌 뒤에도 결과를 복구할 수 있습니다.
+![연결된 생성 카드와 노드별 메타데이터가 보이는 Node mode 화면](../assets/screenshots/node-graph-branching.png)
 
 ### Canvas Mode
 
-이미지가 거의 맞지만 부분 정리가 필요할 때 Canvas Mode를 사용합니다.
+Canvas Mode는 포함되어 있지만, `ima2-genX`에서는 아직 기능 개선이 진행 중인 영역입니다. 현재 버전은 가벼운 정리, 주석, export 확인에 사용할 수 있고, 앞으로 UI와 동작이 더 업데이트될 예정입니다.
 
-- 확대된 이미지에서 viewport 이동과 선택 도구가 분리되어 실수로 annotation을 바꾸지 않고 화면을 이동할 수 있습니다.
-- annotation, eraser, multiselect, group, undo/redo, sticky note를 사용할 수 있습니다.
-- 배경 정리용 시드(seed)를 지정하여 마스크를 미리 본 뒤 canvas version으로 저장할 수 있습니다.
-- 투명 이미지에는 checkerboard preview를 보여주고, export는 alpha 유지 또는 matte 색상 합성 중 선택할 수 있습니다.
-- 저장된 canvas version은 Gallery/HistoryStrip에는 보이지 않지만, Canvas Mode에서는 재사용하거나 다음 reference로 붙일 수 있습니다.
+- 현재 빌드는 viewport zoom/pan, annotation, eraser, sticky note, background-cleanup preview, alpha/matte export에 초점을 둡니다.
+- pan/zoom 감각, cleanup 흐름, 저장된 canvas version 동작, 후속 reference workflow는 계속 다듬는 중입니다.
+- 이 섹션의 스크린샷은 업데이트된 Canvas Mode 흐름이 안정되면 다시 교체할 예정입니다.
 
 ![Zoom controls, annotation, sticky note, canvas toolbar가 보이는 Canvas Mode 화면](../assets/screenshots/canvas-mode-cleanup.png)
 
-### Prompt library와 Import
+### Prompt Builder, Library, Import
 
-Prompt library는 로컬 파일, GitHub folder, curated source, GPT-image hint pack에서 가져올 수 있습니다. 가져온 prompt는 로컬 index에 저장되어 매 세션 다시 import하지 않아도 검색과 ranking에 사용할 수 있습니다.
+Prompt Builder는 의도를 generation-ready prompt로 정리하고, Prompt library는 재사용 가능한 prompt material을 저장합니다. Library는 local files, GitHub folders, curated sources, GPT-image hint packs에서 가져올 수 있으며, 가져온 prompt는 local index에 저장되어 다시 import하지 않아도 검색과 ranking에 사용할 수 있습니다.
 
-![프롬프트를 라이브러리로 불러오기 전에 GitHub 폴더, 추천 소스, 검색된 후보를 검토하는 프롬프트 불러오기 다이얼로그](../assets/screenshots/prompt-import-dialog.png)
-
-### Experimental Card News Mode
-
-Card News는 아직 개발 전용 실험 기능입니다. 기본 공개 런타임에서는 명시적으로 개발용으로 켜지 않는 한 숨겨져 있으며, 아직 안정적인 공개 기능으로 보면 안 됩니다.
-
-### Settings
-
-Settings 워크스페이스는 계정, 모델, 테마, 언어 설정을 생성 패널에서 독립시켜 관리합니다.
-
-![계정 영역과 생성 모델 설정이 보이는 설정 워크스페이스](../assets/screenshots/settings-workspace.png)
+![프롬프트를 라이브러리로 불러오기 전에 GitHub 폴더, 추천 소스, 검색된 후보를 검토하는 Prompt import dialog](../assets/screenshots/prompt-import-dialog.png)
 
 ## CLI 명령어
 
-### 서버
-
 | 명령어 | 설명 |
 |---|---|
-| `ima2x serve [--dev]` | 로컬 웹 서버 시작. `--dev`는 서버 진단 로그를 자세히 표시 |
-| `ima2x setup` | 인증 설정 다시 구성 |
-| `ima2x status` | config와 OAuth 상태 확인 |
-| `ima2x doctor` | Node, 패키지, config, auth 진단 |
-| `ima2x open` | 웹 UI 열기 |
-| `ima2x reset` | 저장된 config 삭제 |
+| `ima2x serve [--dev] [--no-open]` | 로컬 웹 서버를 시작하고 웹 UI를 엽니다 |
+| `ima2x setup` | 저장된 인증을 다시 설정합니다 |
+| `ima2x status` | config와 OAuth 상태를 확인합니다 |
+| `ima2x doctor` | Node, package, config, auth를 진단합니다 |
+| `ima2x open` | 웹 UI를 엽니다 |
+| `ima2x gen <prompt>` | CLI에서 이미지를 생성합니다 |
+| `ima2x edit <file> --prompt <text>` | 기존 이미지를 수정합니다 |
+| `ima2x multimode <prompt>` | 멀티 이미지 SSE 생성을 실행합니다 |
+| `ima2x prompt ls -q <검색어>` | Prompt library를 검색합니다 |
+| `ima2x inflight ls [--terminal]` | 진행 중이거나 최근 완료된 작업을 봅니다 |
 
-### 클라이언트
-
-아래 명령어는 `ima2x serve`가 실행 중이어야 합니다. CLI는 모든 서버 라우트를 감쌉니다. 자주 쓰는 명령어만 추렸고, 전체 목록은 [CLI 레퍼런스(영문)](CLI.md)에 있습니다 (생성, 히스토리, 세션, 프롬프트 라이브러리, 어노테이션, Card News, observability, config 모두 포함).
-
-| 명령어 | 설명 |
-|---|---|
-| `ima2x gen <prompt>` | CLI에서 이미지 생성 |
-| `ima2x edit <file> --prompt <text>` | 기존 이미지 수정 |
-| `ima2x multimode <prompt>` | 멀티 이미지 SSE 생성 |
-| `ima2x ls [--session <id>] [--favorites]` | 로컬 히스토리 보기 |
-| `ima2x show <name> [--metadata]` | 생성 파일 열기 |
-| `ima2x prompt ls -q <검색어>` | 프롬프트 라이브러리 검색 |
-| `ima2x inflight ls [--terminal]` | 진행 중 / 최근 완료 작업 (`ps` 별칭) |
-| `ima2x config set <key> <value>` | `~/.ima2/config.json`에 값 쓰기 |
-| `ima2x ping` | 서버 헬스 체크 |
-
-서버 포트는 `~/.ima2/server.json`에 기록됩니다. `3333`이 사용 중이면 `3334+`로 fallback할 수 있으니 터미널에 출력된 URL이나 `ima2x open`을 우선 사용하세요. `--server <url>` 또는 `IMA2_SERVER=http://localhost:3333`로 직접 지정할 수도 있습니다.
-
-전체 명령 목록과 플래그: [docs/CLI.md](CLI.md).
+전체 명령 목록은 [CLI 레퍼런스](CLI.md)에 있습니다.
 
 ## 설정
 
-우선순위:
+Config 우선순위:
 
 ```text
 environment variables > ~/.ima2/config.json > built-in defaults
@@ -165,56 +133,37 @@ environment variables > ~/.ima2/config.json > built-in defaults
 |---|---:|---|
 | `IMA2_PORT` / `PORT` | `3333` | 웹 서버 포트 |
 | `IMA2_HOST` | `127.0.0.1` | 웹 서버 bind host |
-| `IMA2_OAUTH_PROXY_PORT` / `OAUTH_PORT` | `10531` | OAuth 프록시 포트 |
+| `IMA2_OAUTH_PROXY_PORT` / `OAUTH_PORT` | `10531` | OAuth proxy 포트 |
 | `IMA2_SERVER` | — | CLI 대상 서버 직접 지정 |
 | `IMA2_CONFIG_DIR` | `~/.ima2` | config와 SQLite 저장 위치 |
 | `IMA2_ADVERTISE_FILE` | `~/.ima2/server.json` | 실행 중 서버 discovery 파일 |
 | `IMA2_GENERATED_DIR` | `~/.ima2/generated` | 생성 이미지 저장 위치 |
 | `IMA2_IMAGE_MODEL_DEFAULT` | `gpt-5.4-mini` | 서버 fallback 이미지 모델 |
-| `IMA2_NO_OAUTH_PROXY` | — | `1`이면 OAuth 프록시 자동 시작 비활성화 |
-| `IMA2_LOG_LEVEL` | `warn` | 일반 `serve`는 `warn`, dev 모드는 `debug`. `debug`, `info`, `warn`, `error`, `silent` 지원 |
-| `IMA2_INFLIGHT_TERMINAL_TTL_MS` | `30000` | 디버그용 최근 작업 보존 시간 |
-| `OPENAI_API_KEY` | — | 보조 기능용 API 키. 이미지 생성용은 아님 |
+| `OPENAI_API_KEY` | — | `provider: "api"` 이미지 경로와 보조 API-key 기능용 API 키 |
 
-### 로그 모드
+## 문서
 
-`ima2x serve`는 일반 사용자 기준으로 터미널 출력을 조용하게 유지합니다. 시작 URL, 경고, 오류는 보이지만 요청/노드/OAuth structured log는 기본적으로 숨깁니다.
-
-요청 ID, 노드 생성 단계, OAuth stream 진단, inflight 상태 전환을 봐야 하면 `ima2x serve --dev`, `npm run dev`, 또는 `IMA2_LOG_LEVEL=debug ima2x serve`를 사용하세요. 명시한 `IMA2_LOG_LEVEL`과 `~/.ima2/config.json` 값은 기본값보다 우선합니다.
-
-## API 문서
-
-엔드포인트 목록은 [API Reference](API.md)로 분리했습니다.
-
-자주 묻는 질문은 [FAQ](FAQ.ko.md)에 정리했습니다. 업데이트 후 예전 이미지가 안 보이면 [예전 이미지 복구 안내](RECOVER_OLD_IMAGES.md)를 먼저 확인하세요.
+- [CLI Reference](CLI.md)
+- [API Reference](API.md)
+- [FAQ](FAQ.ko.md)
+- [Recover old images](RECOVER_OLD_IMAGES.md)
 
 ## 문제 해결
 
 **`ima2x ping`이 서버에 연결하지 못한다고 나와요**
-`ima2x serve`를 먼저 실행하고 `~/.ima2/server.json`을 확인하세요. `ima2x ping --server http://localhost:3333`도 사용할 수 있습니다.
+`ima2x serve`를 먼저 실행하고 `~/.ima2/server.json`을 확인하세요.
 
 **OAuth 로그인이 안 돼요**
 `npx @openai/codex login`을 실행하고, `ima2x status`를 확인한 뒤 `ima2x serve`를 다시 시작하세요.
 
-**프록시/VPN 환경에서 `fetch failed`가 반복돼요**
-로컬 OAuth 프록시가 접근 가능한지 확인하세요. 프록시가 필요한 네트워크라면 프록시 클라이언트의 TUN/TURN류 모드를 켠 뒤 `npx openai-oauth --port 10531`을 다시 시도하세요. 그래도 실패하면 `ima2x serve` 또는 `openai-oauth`를 실행하는 같은 터미널에 `HTTP_PROXY`와 `HTTPS_PROXY`를 설정하세요.
-
 **이미지 생성이 `API_KEY_REQUIRED`로 실패해요**
-`provider: "api"` 요청에 사용할 API 키가 설정되어 있지 않다는 뜻입니다. API 키를 설정하거나 OAuth 공급자로 전환하세요.
+`provider: "api"` 요청에 사용할 API 키가 설정되어 있지 않다는 뜻입니다. API 키를 설정하거나 OAuth provider로 전환하세요.
 
 **큰 레퍼런스 이미지가 실패해요**
 JPEG/PNG는 업로드 전에 자동 압축됩니다. 그래도 실패하면 해상도를 낮춘 JPEG/PNG로 바꿔 다시 시도하세요. HEIC/HEIF는 브라우저 경로에서 지원하지 않습니다.
 
 **업데이트 후 예전 갤러리 이미지가 안 보여요**
 최근 버전에서 생성 이미지 위치가 설치 폴더에서 `~/.ima2/generated`로 이동했습니다. `ima2x doctor`를 실행하고 [예전 이미지 복구 안내](RECOVER_OLD_IMAGES.md)를 확인하세요.
-
-**`gpt-5.5`만 실패해요**
-먼저 Codex CLI를 최신으로 업데이트한 뒤 다시 시도해보세요. 그래도 실패하면 현재 계정이나 백엔드 경로에서 `gpt-5.5` 이미지 capability 또는 할당량이 아직 다르게 적용되는 상황일 수 있으니, 안정적인 대안으로 `gpt-5.4`를 사용하세요.
-
-**포트가 갑자기 `3457`로 떠요**
-다른 로컬 도구에서 `PORT=3457`이 상속됐을 수 있습니다. `unset PORT`를 실행하거나 `IMA2_PORT=3333 ima2x serve`로 시작하세요.
-
-더 자세한 답변은 [FAQ](FAQ.ko.md)를 확인하세요.
 
 ## 개발
 
@@ -227,8 +176,6 @@ npm run typecheck
 npm test
 npm run build
 ```
-
-`npm run dev`는 UI를 빌드한 뒤 TypeScript 서버 entry를 `--watch`로 실행하고, 서버 진단 로그를 자세히 표시합니다. `npm run typecheck`, `npm run build:server`, `npm run build:cli`로 TypeScript migration과 package emit 경로를 확인할 수 있습니다.
 
 ## 라이선스
 

@@ -736,7 +736,7 @@
       "apiSourceEnv": "OPENAI_API_KEY 감지됨",
       "apiSourceConfig": "config.json API 키 감지됨",
       "apiTitle": "API 키 공급자 사용 가능",
-      "apiBody": "ima2-gen은 이 API 키로 Responses API 기반 생성, 편집, 멀티모드, 노드 요청을 처리할 수 있습니다.",
+      "apiBody": "ima2-genX는 이 API 키로 Responses API 기반 생성, 편집, 멀티모드, 노드 요청을 처리할 수 있습니다.",
       "apiDisabled": "사용 불가",
       "apiReady": "준비됨",
       "apiUnavailable": "사용 불가",

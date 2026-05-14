@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ima2-gen fork one-click installer (macOS / Linux)
+# ima2-genX one-click installer (macOS / Linux)
 #
 # Usage:
 #   curl -fsSL https://damagethundercat.github.io/ima2-gen/install-mac.sh | bash
@@ -38,7 +38,7 @@ else
   fail "npm install failed. Check npm permissions or configure a user-level npm prefix."
 fi
 
-print "Starting ima2-gen fork with $CLI_NAME serve..."
+print "Starting ima2-genX with $CLI_NAME serve..."
 print "If the browser does not open automatically, visit http://localhost:3333."
 echo
 exec "$CLI_NAME" serve

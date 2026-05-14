@@ -1,27 +1,24 @@
-# ima2-gen
+# ima2-genX
 
 <p align="center">
-  <img src="assets/logo.png" alt="ima2-gen logo" width="240">
+  <img src="assets/logo.png" alt="ima2-genX logo" width="240">
 </p>
 
 [![npm version](https://img.shields.io/npm/v/%40damagethundercat%2Fima2-gen)](https://www.npmjs.com/package/%40damagethundercat%2Fima2-gen)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-> 🌐 **Live site**: [damagethundercat.github.io/ima2-gen](https://damagethundercat.github.io/ima2-gen/) · [한국어](https://damagethundercat.github.io/ima2-gen/ko/)
+`ima2-genX` is a local image generation studio for people who want a faster, more controllable ChatGPT/Codex image workflow in a desktop-like web app.
+
+> **Fork note**
+> `ima2-genX` is a respectful continuation and heavily modified fork of [`lidge-jun/ima2-gen`](https://github.com/lidge-jun/ima2-gen). It inherits the local OAuth image-generation foundation, but the product surface, prompt workflow, gallery behavior, multimode flow, Node mode, provider handling, CLI coverage, packaging path, and ongoing Canvas Mode work have changed substantially.
 >
-> **Read in other languages**: [한국어](docs/README.ko.md) · [日本語](docs/README.ja.md) · [简体中文](docs/README.zh-CN.md)
+> The product name is `ima2-genX`. The npm package remains `@damagethundercat/ima2-gen` and the CLI command remains `ima2x` for install continuity and to avoid overwriting the upstream `ima2` command. The app also keeps the default `~/.ima2` data/config folder and default local ports for compatibility. Running the upstream server and this fork at the same time is not recommended because their server/OAuth ports and local runtime advertisement file can collide.
 
-`ima2-gen` is a local image generation studio for people who want the ChatGPT/Codex image workflow in a small desktop-like web app.
+Run it with `npx`, sign in with Codex OAuth, start from a rough prompt, refine it with the built-in Prompt Builder, and keep iterating through history, references, node branches, multimode batches, and the evolving Canvas Mode cleanup tools. No OpenAI API key is required for the default path, but API-key generation is also supported when configured.
 
-> **Fork note**  
-> This is the `damagethundercat` custom UI fork of [`lidge-jun/ima2-gen`](https://github.com/lidge-jun/ima2-gen). It publishes as `@damagethundercat/ima2-gen` and exposes the `ima2x` command so it does not overwrite the upstream `ima2` CLI.
->
-> The fork keeps the default `~/.ima2` data/config folder and default local ports for compatibility. Running the upstream server and this fork at the same time is not recommended because their server/OAuth ports and local runtime advertisement file can collide.
-
-Run it with `npx`, sign in with Codex OAuth, type a prompt, and keep iterating with history, references, node branches, multimode batches, and Canvas Mode cleanup. No OpenAI API key is required for the default path, but API-key generation is also supported when configured.
-
-![ima2-gen classic generation screen with prompt composer, generated image, compact model label, and result metadata.](assets/screenshots/classic-generate-light.png)
+<!-- Screenshot refresh: replace this with the new ima2-genX main workflow capture when ready. -->
+![ima2-genX classic generation screen with prompt composer, generated image, compact model label, and result metadata.](assets/screenshots/classic-generate-light.png)
 
 ## Quick Start
 
@@ -40,7 +37,7 @@ npx @openai/codex login
 npx @damagethundercat/ima2-gen serve
 ```
 
-If `3333` is already occupied, `ima2-gen` binds the next available port and writes the actual URL to `~/.ima2/server.json`. Use `ima2x open` or the URL printed in the terminal instead of assuming the port.
+If `3333` is already occupied, `ima2-genX` binds the next available port and writes the actual URL to `~/.ima2/server.json`. Use `ima2x open` or the URL printed in the terminal instead of assuming the port.
 
 You can also install it globally:
 
@@ -56,16 +53,26 @@ persists, reboot and run the update before starting ima2x again.
 
 ## What It Does
 
-- **Custom fork UI**: large bottom prompt composer, right-side prompt builder, image-scoped builder sessions, grouped multimode history, improved image viewer controls, and refreshed Node-mode side panels.
+- **Prompt Builder first**: turn rough ideas into stronger prompts in the right-side builder, keep image-scoped builder sessions, and carry context across follow-up generations.
+- **ima2-genX UI**: large bottom prompt composer, grouped multimode history, improved image viewer controls, refreshed Node-mode side panels, and compact mobile flows.
 - **Classic mode**: generate, edit, reuse the current image, paste references, and continue from history.
 - **Node mode**: branch a good image into multiple directions without losing the original.
 - **Multimode batches**: launch several Classic outputs from one prompt, watch slot-by-slot progress, and continue from the best result.
-- **Canvas Mode**: zoom, pan, annotate, erase, clean backgrounds, keep transparent previews, and export either alpha or matte-backed versions.
+- **Canvas Mode, in progress**: current builds include zoom, pan, annotation, eraser, background cleanup, and export tools, but this area is still being actively improved and may change across upcoming releases.
 - **Local gallery**: keep generated assets on your machine with session-aware history. By default the gallery shows the current session and an All Images toggle reveals the full history; the default scope is sticky across sessions.
 - **Reference images**: drag, drop, paste, and attach up to 5 references; large images are compressed before upload.
 - **Prompt library imports**: import local prompt packs, GitHub folders, and curated GPT-image prompt hints into the built-in prompt library.
-- **Mobile shell**: use the app bar, compose sheet, and compact settings toggle on smaller screens.
 - **Observable jobs**: active and recent jobs are tracked with safe logs and request IDs.
+
+## What Changed From Upstream
+
+`ima2-genX` keeps the spirit of the original local OAuth image-generation tool while moving the fork in a more workflow-oriented direction:
+
+- The main generation loop now centers on a bottom composer plus a right-side Prompt Builder, not only a single prompt box.
+- History, multimode, prompt-library import, and active-job tracking were expanded so repeated iteration is easier to inspect.
+- Node mode has been expanded for branching and comparison. Canvas Mode is included, but its cleanup, annotation, export, and follow-up-reference workflow is still being refined.
+- API-key generation is available as a configured provider path alongside the default Codex OAuth path.
+- The public command is `ima2x`, and the npm package stays under `@damagethundercat/ima2-gen` so existing installs can update cleanly.
 
 ## Provider Paths
 
@@ -91,42 +98,48 @@ The app also exposes quality (`low`, `medium`, `high`) and moderation (`auto`, `
 
 ## Workflows
 
+### Prompt Builder To Image
+
+Use the Prompt Builder when you have an idea but want a cleaner generation prompt before spending a request.
+
+1. Write a rough idea in the composer.
+2. Use the Prompt Builder to clarify subject, composition, style, constraints, and follow-up intent.
+3. Attach references or reuse the current image when the next step should preserve visual continuity.
+4. Generate one image, or enable multimode to fan out several candidate slots from the same refined prompt.
+5. Continue from the strongest result, branch it in Node mode, or try the current Canvas Mode cleanup tools.
+
+<!-- Screenshot refresh: replace with a capture that shows Prompt Builder in the main workflow. -->
+![Multimode sequence with four candidate slots generating from one prompt and active job history in the sidebar.](assets/screenshots/multimode-sequence.png)
+
 ### Classic Mode
 
-Use Classic when you want one strong result quickly.
-
-1. Write a prompt.
-2. Attach or paste references if needed.
-3. Pick model, quality, size, format, and moderation.
-4. Generate one image, or enable multimode to fan out several candidate slots from the same prompt.
-5. Copy, download, continue from the result, or send it into Canvas Mode.
-
-![Multimode sequence with four candidate slots generating from one prompt and active job history in the sidebar.](assets/screenshots/multimode-sequence.png)
+Use Classic when you want one strong result quickly, with or without the builder. You can generate, edit, paste references, reuse the current image, and continue from any item in local history.
 
 ### Node Mode
 
 Use Node mode when you want to explore branches.
 
+<!-- Screenshot refresh: replace after the ima2-genX Node mode capture is ready. -->
 ![Node mode with connected generated cards and compact per-node metadata.](assets/screenshots/node-graph-branching.png)
 
 Each node keeps its own prompt and result. Root nodes can attach local references; child nodes use the parent image as their source. Completed jobs are matched back to nodes by request ID, so reloads and graph version conflicts can recover finished results.
 
 ### Canvas Mode
 
-Use Canvas Mode when a generated image is close but needs targeted cleanup before the next prompt.
+Canvas Mode is included, but in `ima2-genX` it is still under active improvement. Use the current version for light cleanup, annotation, and export checks, and expect this workflow to receive more UI and behavior updates in upcoming releases.
 
-- Separate viewport panning from selection so you can move around a zoomed image without accidentally changing annotations.
-- Use annotation, eraser, multiselect, grouping, undo/redo, and sticky notes while keeping the original gallery image available.
-- Pick background-cleanup seeds, preview the mask, and save the cleanup as a canvas version.
-- Detect transparent images and show a checkerboard preview; export with preserved alpha or with a chosen matte color.
-- Saved canvas versions stay hidden from Gallery and HistoryStrip, but Canvas Mode can reuse them and attach a canvas version as the next reference.
+- Current builds focus on viewport zoom/pan, annotation, eraser, sticky notes, background-cleanup previews, and alpha or matte-backed export.
+- The pan/zoom feel, cleanup flow, saved canvas-version behavior, and follow-up reference workflow are being revised.
+- Screenshots in this section will be refreshed once the updated Canvas Mode workflow settles.
 
+<!-- Screenshot refresh: replace after the ima2-genX Canvas Mode capture is ready. -->
 ![Canvas Mode with zoom controls, annotation marks, a sticky note, and the canvas toolbar.](assets/screenshots/canvas-mode-cleanup.png)
 
-### Prompt Library And Imports
+### Prompt Builder, Library, And Imports
 
-The prompt library can now be filled from local files, GitHub folders, curated sources, and GPT-image hint packs. Imported prompts are indexed locally so search and ranking work without re-importing the same source every session.
+The Prompt Builder helps turn an intent into a generation-ready prompt, while the prompt library stores reusable prompt material. The library can be filled from local files, GitHub folders, curated sources, and GPT-image hint packs. Imported prompts are indexed locally so search and ranking work without re-importing the same source every session.
 
+<!-- Screenshot refresh: replace after the ima2-genX prompt workflow capture is ready. -->
 ![Prompt import dialog for bringing prompts into the library, showing GitHub folder controls, curated sources, and searched prompt candidates before import.](assets/screenshots/prompt-import-dialog.png)
 
 ### Experimental Card News Mode
@@ -139,6 +152,7 @@ be treated as a stable public feature yet.
 
 The settings workspace keeps account, model, appearance, and language controls away from the generation sidebar.
 
+<!-- Screenshot refresh: replace after the ima2-genX settings capture is ready. -->
 ![Settings workspace with account navigation and generation model controls.](assets/screenshots/settings-workspace.png)
 
 ## CLI Commands
@@ -226,6 +240,9 @@ Useful references:
 - [API Reference](docs/API.md)
 - [FAQ](docs/FAQ.md)
 - [Recover old images](docs/RECOVER_OLD_IMAGES.md)
+
+Translated README files may lag behind the current `ima2-genX` release:
+
 - [Korean README](docs/README.ko.md)
 - [Japanese README](docs/README.ja.md)
 - [Chinese README](docs/README.zh-CN.md)
@@ -254,7 +271,7 @@ Recent versions moved generated images from the installed package folder to `~/.
 Update Codex CLI first, then retry. If it still fails, your account or backend route may not expose the same image capability or quota for `gpt-5.5` yet; use `gpt-5.4` as the stable fallback.
 
 **The app opened on a different port**
-If the requested server port is busy, `ima2-gen` falls back to the next available port and records it in `~/.ima2/server.json`. If the port is unexpectedly `3457`, your shell may also have inherited `PORT=3457` from another local tool. Run `unset PORT` or start with `IMA2_PORT=3333 ima2x serve`.
+If the requested server port is busy, `ima2-genX` falls back to the next available port and records it in `~/.ima2/server.json`. If the port is unexpectedly `3457`, your shell may also have inherited `PORT=3457` from another local tool. Run `unset PORT` or start with `IMA2_PORT=3333 ima2x serve`.
 
 **Port `10531` is already used on Windows**
 Some Windows security tools, including `AnySign4PC.exe`, may occupy the default OAuth proxy port. Current builds track the actual fallback OAuth port. If you still need a manual override, start with `IMA2_OAUTH_PROXY_PORT=11531 ima2x serve` and check `ima2x doctor`.
@@ -273,31 +290,11 @@ npm test
 npm run build
 ```
 
-`npm run dev` builds the UI and starts the TypeScript server entry with `--watch` and verbose server diagnostics. `npm run typecheck`, `npm run build:server`, and `npm run build:cli` verify the TypeScript migration and package emit path. Node mode and Canvas Mode are part of the packaged UI by default.
-
-### Fork maintenance
-
-Keep the original project as `upstream` and this fork as `origin`:
-
-```bash
-git remote rename origin upstream
-git remote add origin https://github.com/damagethundercat/ima2-gen.git
-git fetch --all --prune
-```
-
-Sync upstream changes with merge commits so custom UI history stays visible:
-
-```bash
-git fetch upstream
-git switch main
-git merge upstream/main
-npm run typecheck
-npm test
-```
+`npm run dev` builds the UI and starts the TypeScript server entry with `--watch` and verbose server diagnostics. `npm run typecheck`, `npm run build:server`, and `npm run build:cli` verify the TypeScript migration and package emit path. Node mode is part of the packaged UI by default; Canvas Mode is included but still actively being improved.
 
 ### Release
 
-First public scoped publish:
+Manual npm publish:
 
 ```bash
 npm login

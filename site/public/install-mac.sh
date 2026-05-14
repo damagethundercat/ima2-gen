@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ima2-gen fork one-click installer (macOS / Linux)
+# ima2-genX one-click installer (macOS / Linux)
 
 set -euo pipefail
 
@@ -25,5 +25,5 @@ fi
 print "Installing $PKG_NAME globally..."
 npm install -g "$PKG_NAME"
 
-print "Starting ima2-gen fork with $CLI_NAME serve..."
+print "Starting ima2-genX with $CLI_NAME serve..."
 exec "$CLI_NAME" serve

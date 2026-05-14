@@ -4,15 +4,15 @@ type Dict = Record<string, string>;
 
 const en: Dict = {
   // Base / meta
-  'meta.title': 'ima2-gen — Local Image Studio with Classic + Node + Canvas',
+  'meta.title': 'ima2-genX — Local Image Studio with Prompt Builder Workflows',
   'meta.desc':
     'Generate images locally with Classic mode, branch the ones you love in a Node graph, and clean them up in Canvas Mode.',
-  'meta.og.title': 'ima2-gen — Generate, branch, clean up',
+  'meta.og.title': 'ima2-genX — Prompt, generate, branch',
   'meta.og.desc':
     'A local image studio with Classic, Node-graph branching, multimode batches, and Canvas Mode cleanup. Run it with npx.',
 
   // Header
-  'header.brand.aria': 'ima2-gen home',
+  'header.brand.aria': 'ima2-genX home',
   'header.nav.aria': 'Section navigation',
   'header.nav.workflows': 'Workflows',
   'header.nav.branch': 'Branch',
@@ -31,7 +31,7 @@ const en: Dict = {
   'hero.cta.cmd': 'npx @damagethundercat/ima2-gen serve',
   'hero.cross.lang': '한국어 README →',
   'hero.shot.alt':
-    'ima2-gen Classic mode showing the prompt composer, generated image, model label, and result metadata.',
+    'ima2-genX Classic mode showing the prompt composer, generated image, model label, and result metadata.',
 
   // Two Workflows
   'workflows.tag': '01 · Generate, branch, refine',
@@ -44,13 +44,13 @@ const en: Dict = {
   'workflows.classic.body':
     'Write, attach up to five references, generate one result or several multimode slots. Iterate until it lands. Continue from any result.',
   'workflows.classic.alt':
-    'ima2-gen Classic mode with prompt composer, references, and a generated team portrait.',
+    'ima2-genX Classic mode with prompt composer, references, and a generated team portrait.',
   'workflows.node.label': 'Node',
   'workflows.node.h': 'One frame, ten directions.',
   'workflows.node.body':
     'Lock a parent. Fan out children — palette, framing, copy. Compare side by side. Running branches recover by request ID.',
   'workflows.node.alt':
-    'ima2-gen Node mode with connected generated cards and per-node metadata.',
+    'ima2-genX Node mode with connected generated cards and per-node metadata.',
 
   // Latest Capabilities
   'latest.tag': '02 · New in the studio',
@@ -63,28 +63,28 @@ const en: Dict = {
   'latest.multimode.body':
     'Run a sequence from Classic mode, watch each slot progress, cancel when needed, and continue from the strongest result.',
   'latest.multimode.alt':
-    'ima2-gen multimode sequence showing four generating slots and active job history.',
+    'ima2-genX multimode sequence showing four generating slots and active job history.',
   'latest.canvas.label': 'Canvas Mode',
   'latest.canvas.h': 'Clean up the winning frame.',
   'latest.canvas.body':
     'Pan around a zoomed image, annotate target areas, clean backgrounds, and export transparent or matte-backed canvas versions.',
   'latest.canvas.alt':
-    'ima2-gen Canvas Mode showing annotation marks, sticky note, zoom controls, and canvas toolbar.',
+    'ima2-genX Canvas Mode showing annotation marks, sticky note, zoom controls, and canvas toolbar.',
   'latest.import.label': 'Prompt import',
   'latest.import.h': 'Bring prompt packs in.',
   'latest.import.body':
     'Use the import dialog to drop files, preview GitHub folders, refresh curated sources, and review searched candidates before adding selected prompts to the library.',
   'latest.import.alt':
-    'ima2-gen prompt import dialog for reviewing GitHub folders, curated sources, and searched prompt candidates before import.',
+    'ima2-genX prompt import dialog for reviewing GitHub folders, curated sources, and searched prompt candidates before import.',
 
   // Why Branch
   'branch.tag': '03 · Branching as a workflow',
   'branch.h.before': 'A good frame is a ',
   'branch.h.em': 'starting point.',
   'branch.lede':
-    'Locking the parent and fanning out children is how visual ideas actually develop. ima2-gen makes it the default.',
+    'Locking the parent and fanning out children is how visual ideas actually develop. ima2-genX makes it the default.',
   'branch.shot.alt':
-    'ima2-gen Node mode canvas with a parent node and child branches showing palette, framing, and copy variants.',
+    'ima2-genX Node mode canvas with a parent node and child branches showing palette, framing, and copy variants.',
   'branch.scenarios.aria': 'Branching scenario steps',
   'branch.s1.strong': 'Generate a parent.',
   'branch.s1.body': 'A frame you actually want to keep.',
@@ -98,13 +98,13 @@ const en: Dict = {
   'local.h.before': 'Sign in. ',
   'local.h.em': 'Stay local.',
   'local.lede':
-    "ima2-gen reuses your existing Codex/ChatGPT login. Generated frames and sessions live on your disk — not on someone else's.",
+    "ima2-genX reuses your existing Codex/ChatGPT login. Generated frames and sessions live on your disk — not on someone else's.",
   'local.quote.before': 'If the settings page says ',
   'local.quote.strong': 'Configured but disabled',
   'local.quote.after': ', that means an API key exists in env/config but image generation still uses OAuth.',
   'local.meta': 'User-data folder · MIT licensed · Inspect, sync, version — your call.',
   'local.shot.alt':
-    'ima2-gen Settings workspace showing OAuth active and an API key configured but disabled.',
+    'ima2-genX Settings workspace showing OAuth active and an API key configured but disabled.',
 
   // Install
   'install.tag': '06 · Get going',
@@ -132,10 +132,10 @@ const en: Dict = {
     'Locally. Generated images and session logs live in your user-data folder. Inspect, sync, version — your call. Image files are not uploaded to a separate remote store.',
   'faq.q3': 'Do I need an OpenAI API key?',
   'faq.a3':
-    'Not for image generation. `ima2-gen` uses your local Codex/ChatGPT login. An `API key` may still be detected for auxiliary tooling, but the generation path uses your login session by design.',
+    'Not for image generation. `ima2-genX` uses your local Codex/ChatGPT login. An `API key` may still be detected for auxiliary tooling, but the generation path uses your login session by design.',
 
   // FAQ — full detail page
-  'faq.page.title': 'FAQ — ima2-gen',
+  'faq.page.title': 'FAQ — ima2-genX',
   'faq.page.h': 'Frequently asked questions',
   'faq.page.lede': 'Install, run, branch — answered short.',
   'faq.ui.copy': 'Copy',
@@ -146,13 +146,13 @@ const en: Dict = {
 
   'faq.install.q1': 'Can I run it through the Codex desktop app?',
   'faq.install.a1':
-    'No — it runs through the `Codex CLI`. If the CLI is missing, `ima2-gen` prompts you to install it on first run, then opens a login window. Approve and you are good to go.',
-  'faq.install.q2': 'How do I install ima2-gen?',
+    'No — it runs through the `Codex CLI`. If the CLI is missing, `ima2-genX` prompts you to install it on first run, then opens a login window. Approve and you are good to go.',
+  'faq.install.q2': 'How do I install ima2-genX?',
   'faq.install.a2':
     'Open Terminal (macOS / Linux) or PowerShell (Windows). Install globally with `npm install -g @damagethundercat/ima2-gen`, then run `ima2x serve`. Open `http://localhost:3333` in your browser.',
   'faq.install.q3': 'What is npm? Is there a one-click install?',
   'faq.install.a3':
-    '`npm` is the Node.js package manager. If you do not have it, use the installer for your OS — it helps set up Node when needed, installs `ima2-gen`, and starts the server.',
+    '`npm` is the Node.js package manager. If you do not have it, use the installer for your OS — it helps set up Node when needed, installs ima2-genX, and starts the server.',
   'faq.install.q4': 'Does it work on Windows / PowerShell?',
   'faq.install.a4':
     'Yes. Windows 10+ with `PowerShell 5.1` or `PowerShell 7` are supported. The public installer script is served from GitHub Pages and prints every command before running it.',
@@ -175,16 +175,16 @@ const en: Dict = {
 
   'faq.tech.q1': 'What data leaves my machine?',
   'faq.tech.a1':
-    'The generation request goes to OpenAI to actually create the image. The result file and the session log stay on your disk. There is no separate `ima2-gen` analytics or remote store.',
+    'The generation request goes to OpenAI to actually create the image. The result file and the session log stay on your disk. There is no separate `ima2-genX` analytics or remote store.',
   'faq.tech.q2': 'Does it work offline?',
   'faq.tech.a2':
     'Generation needs the OpenAI API, so an internet connection is required for that step. Browsing the local gallery, organizing sessions, and editing style sheets all work offline.',
   'faq.tech.q3': 'Is it open source?',
   'faq.tech.a3':
-    'Yes. `ima2-gen` is MIT licensed. The code lives on GitHub.',
+    'Yes. `ima2-genX` is MIT licensed. The code lives on GitHub.',
 
   // Footer
-  'footer.line1': 'ima2-gen · MIT licensed',
+  'footer.line1': 'ima2-genX · MIT licensed',
   'footer.line2': 'Branch the images you love.',
   'footer.line3': 'Built local. Documented in the open.',
   'footer.lang.aria': 'Language READMEs',
@@ -195,15 +195,15 @@ const en: Dict = {
 
 const ko: Dict = {
   // Base / meta
-  'meta.title': 'ima2-gen — 로컬 이미지 스튜디오, Classic + Node + Canvas',
+  'meta.title': 'ima2-genX — 프롬프트 빌더 중심 로컬 이미지 스튜디오',
   'meta.desc':
     'Classic으로 만들고, Node로 분기하고, Canvas Mode로 정리하는 로컬 이미지 스튜디오.',
-  'meta.og.title': 'ima2-gen — 만들고, 분기하고, 정리하기',
+  'meta.og.title': 'ima2-genX — 대화하고, 만들고, 분기하기',
   'meta.og.desc':
     'Classic, Node 분기, multimode batch, Canvas Mode cleanup을 갖춘 로컬 이미지 스튜디오. npx 한 줄로 시작합니다.',
 
   // Header
-  'header.brand.aria': 'ima2-gen 홈',
+  'header.brand.aria': 'ima2-genX 홈',
   'header.nav.aria': '섹션 내비게이션',
   'header.nav.workflows': '워크플로',
   'header.nav.branch': '분기',
@@ -222,7 +222,7 @@ const ko: Dict = {
   'hero.cta.cmd': 'npx @damagethundercat/ima2-gen serve',
   'hero.cross.lang': 'English landing →',
   'hero.shot.alt':
-    'ima2-gen Classic 모드 — 프롬프트 컴포저, 생성 이미지, 모델 라벨, 결과 메타가 한 화면에.',
+    'ima2-genX Classic 모드 — 프롬프트 컴포저, 생성 이미지, 모델 라벨, 결과 메타가 한 화면에.',
 
   // Two Workflows
   'workflows.tag': '01 · 생성, 분기, 정리',
@@ -235,13 +235,13 @@ const ko: Dict = {
   'workflows.classic.body':
     '프롬프트를 쓰고, 레퍼런스를 다섯 장까지 붙이고, 한 장 또는 multimode 후보 여러 장을 만드세요. 어떤 결과에서든 이어 만들 수 있습니다.',
   'workflows.classic.alt':
-    'ima2-gen Classic 모드 — 프롬프트 컴포저, 레퍼런스, 생성된 인물 컷.',
+    'ima2-genX Classic 모드 — 프롬프트 컴포저, 레퍼런스, 생성된 인물 컷.',
   'workflows.node.label': 'Node',
   'workflows.node.h': '한 컷에서 여러 방향으로.',
   'workflows.node.body':
     '기준이 될 한 장을 고정하고, 색감·구도·카피를 노드별로 펼치세요. 실행 중인 branch는 request ID 기준으로 복구됩니다.',
   'workflows.node.alt':
-    'ima2-gen Node 모드 — 연결된 카드들과 노드별 메타.',
+    'ima2-genX Node 모드 — 연결된 카드들과 노드별 메타.',
 
   // Latest Capabilities
   'latest.tag': '02 · 새로 들어온 작업 도구',
@@ -254,28 +254,28 @@ const ko: Dict = {
   'latest.multimode.body':
     'Classic에서 시퀀스를 실행하고, 슬롯별 진행을 보면서 필요하면 취소하고, 가장 좋은 결과에서 바로 이어갈 수 있습니다.',
   'latest.multimode.alt':
-    'ima2-gen multimode sequence — 네 개 생성 슬롯과 진행 중 작업 히스토리.',
+    'ima2-genX multimode sequence — 네 개 생성 슬롯과 진행 중 작업 히스토리.',
   'latest.canvas.label': 'Canvas Mode',
   'latest.canvas.h': '마음에 든 컷을 정리하기.',
   'latest.canvas.body':
     '확대된 이미지를 이동하고, 수정 지점을 표시하고, 배경을 정리한 뒤 투명 또는 matte-backed canvas version으로 export합니다.',
   'latest.canvas.alt':
-    'ima2-gen Canvas Mode — annotation, sticky note, zoom control, canvas toolbar가 보이는 화면.',
+    'ima2-genX Canvas Mode — annotation, sticky note, zoom control, canvas toolbar가 보이는 화면.',
   'latest.import.label': 'Prompt import',
   'latest.import.h': 'Prompt pack 가져오기.',
   'latest.import.body':
     '불러오기 다이얼로그에서 로컬 파일, GitHub 폴더, 추천 소스, 검색된 후보를 검토한 뒤 선택한 프롬프트만 라이브러리에 저장합니다.',
   'latest.import.alt':
-    'ima2-gen 프롬프트 불러오기 다이얼로그 — GitHub 폴더, 추천 소스, 검색된 프롬프트 후보를 저장 전 검토하는 화면.',
+    'ima2-genX 프롬프트 불러오기 다이얼로그 — GitHub 폴더, 추천 소스, 검색된 프롬프트 후보를 저장 전 검토하는 화면.',
 
   // Why Branch
   'branch.tag': '03 · 분기, 그게 워크플로',
   'branch.h.before': '마음에 든 한 장이 ',
   'branch.h.em': '다음 작업의 시작.',
   'branch.lede':
-    '원본은 그대로 두고, 색감·구도·카피만 바꿔 여러 방향을 비교하세요. ima2-gen은 이 흐름을 기본으로 만들었습니다.',
+    '원본은 그대로 두고, 색감·구도·카피만 바꿔 여러 방향을 비교하세요. ima2-genX는 이 흐름을 기본으로 만들었습니다.',
   'branch.shot.alt':
-    'ima2-gen Node 모드 — 기준 노드 한 장과 색감·구도·카피 방향의 자식 노드들.',
+    'ima2-genX Node 모드 — 기준 노드 한 장과 색감·구도·카피 방향의 자식 노드들.',
   'branch.scenarios.aria': '분기 시나리오 단계',
   'branch.s1.strong': '먼저 기준이 될 한 장.',
   'branch.s1.body': '계속 가져가고 싶은 결과를 고르세요.',
@@ -297,7 +297,7 @@ const ko: Dict = {
     '가 보인다면, API key가 설정돼 있어도 이미지 생성은 Codex/ChatGPT 로그인으로만 실행된다는 뜻입니다.',
   'local.meta': '로컬 저장 · MIT 라이선스 · 확인, 동기화, 버전 관리까지 원하는 방식으로.',
   'local.shot.alt':
-    'ima2-gen 설정 화면 — OAuth 활성, API key는 설정되어 있지만 비활성.',
+    'ima2-genX 설정 화면 — OAuth 활성, API key는 설정되어 있지만 비활성.',
 
   // Install
   'install.tag': '06 · 시작하기',
@@ -329,7 +329,7 @@ const ko: Dict = {
     '이미지 생성에는 필요 없습니다. 로컬에 로그인된 Codex/ChatGPT 계정을 그대로 사용합니다. `API key`가 설정돼 있어도 이미지 생성 경로는 로그인 세션을 우선 사용하도록 설계되어 있습니다.',
 
   // FAQ — 상세 페이지
-  'faq.page.title': 'FAQ — ima2-gen',
+  'faq.page.title': 'FAQ — ima2-genX',
   'faq.page.h': '자주 묻는 질문',
   'faq.page.lede': '설치, 실행, 분기 — 핵심만 짧게.',
   'faq.ui.copy': '복사',
@@ -340,13 +340,13 @@ const ko: Dict = {
 
   'faq.install.q1': 'Codex 데스크톱 앱으로도 되나요?',
   'faq.install.a1':
-    '아니요. `Codex CLI`로 실행됩니다. CLI가 없으면 `ima2-gen`이 첫 실행 때 설치를 안내하고, 로그인 창을 띄워줍니다. 안내대로 깔면 바로 시작할 수 있습니다.',
+    '아니요. `Codex CLI`로 실행됩니다. CLI가 없으면 `ima2-genX`가 첫 실행 때 설치를 안내하고, 로그인 창을 띄워줍니다. 안내대로 깔면 바로 시작할 수 있습니다.',
   'faq.install.q2': '어떻게 설치하나요?',
   'faq.install.a2':
     '터미널(macOS / Linux) 또는 PowerShell(Windows)을 엽니다. `npm install -g @damagethundercat/ima2-gen`으로 전역 설치하고 `ima2x serve`로 실행하세요. 브라우저에서 `http://localhost:3333`을 열면 됩니다.',
   'faq.install.q3': 'npm이 뭔가요? 한 번에 설치하는 방법이 있나요?',
   'faq.install.a3':
-    '`npm`은 Node.js 패키지 매니저입니다. 처음이라면 OS별 설치 스크립트를 사용할 수 있습니다. 스크립트는 Node가 없으면 설치를 안내하고, `ima2-gen` 설치와 서버 실행을 돕습니다.',
+    '`npm`은 Node.js 패키지 매니저입니다. 처음이라면 OS별 설치 스크립트를 사용할 수 있습니다. 스크립트는 Node가 없으면 설치를 안내하고, ima2-genX 설치와 서버 실행을 돕습니다.',
   'faq.install.q4': 'Windows / PowerShell에서도 되나요?',
   'faq.install.a4':
     '됩니다. Windows 10 이상, `PowerShell 5.1` 또는 `PowerShell 7`을 지원합니다. 공개 설치 스크립트는 GitHub Pages에서 제공되며, 실행 전 모든 명령을 화면에 출력합니다.',
@@ -369,16 +369,16 @@ const ko: Dict = {
 
   'faq.tech.q1': '내 컴퓨터에서 어떤 데이터가 나가나요?',
   'faq.tech.a1':
-    '이미지 생성 요청은 OpenAI로 전송됩니다. 결과 파일과 작업 기록은 로컬에만 남습니다. `ima2-gen`이 별도로 수집하는 분석 데이터나 외부 저장소는 없습니다.',
+    '이미지 생성 요청은 OpenAI로 전송됩니다. 결과 파일과 작업 기록은 로컬에만 남습니다. `ima2-genX`가 별도로 수집하는 분석 데이터나 외부 저장소는 없습니다.',
   'faq.tech.q2': '오프라인에서도 되나요?',
   'faq.tech.a2':
     '이미지 생성은 OpenAI API 호출이 필요해 인터넷이 있어야 합니다. 하지만 로컬 갤러리 조회, 세션 정리, 스타일 시트 편집 등의 기능은 오프라인에서도 자유롭게 사용할 수 있습니다.',
   'faq.tech.q3': '오픈소스인가요?',
   'faq.tech.a3':
-    '네. `ima2-gen`은 MIT 라이선스로 공개되어 있습니다. 코드는 GitHub에서 볼 수 있습니다.',
+    '네. `ima2-genX`는 MIT 라이선스로 공개되어 있습니다. 코드는 GitHub에서 볼 수 있습니다.',
 
   // Footer
-  'footer.line1': 'ima2-gen · MIT 라이선스',
+  'footer.line1': 'ima2-genX · MIT 라이선스',
   'footer.line2': '마음에 든 한 장, 다음 컷은 바로.',
   'footer.line3': '로컬에서 만들고, 코드는 공개로.',
   'footer.lang.aria': '언어별 README',

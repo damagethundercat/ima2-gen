@@ -86,6 +86,17 @@ test("Canvas exposes zoom controls, wheel zoom, and keyboard zoom shortcuts", ()
   }
 });
 
+test("Canvas disables transform easing during trackpad wheel gestures", () => {
+  assert.match(canvas, /wheelTransformActive/);
+  assert.match(canvas, /setWheelTransformActive\(true\)/);
+  assert.match(canvas, /wheelTransformTimerRef/);
+  assert.match(canvas, /window\.setTimeout\(\(\) => setWheelTransformActive\(false\),\s*140\)/);
+  assert.match(
+    canvas,
+    /transition:\s*canvasOpen && !viewportPanActive && !wheelTransformActive\s*\?\s*"transform 0\.2s ease"/,
+  );
+});
+
 test("Canvas Mode blocks browser pinch zoom while preserving canvas wheel gestures", () => {
   assert.match(canvas, /preventCtrlWheelDefault/);
   assert.match(canvas, /window\.addEventListener\("wheel",\s*preventCtrlWheelDefault,\s*wheelOptions\)/);

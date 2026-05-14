@@ -1,4 +1,4 @@
-# ima2-gen — AI Context
+# ima2-genX — AI Context
 
 ## What This Project Does
 GPT Image 2 (gpt-image-2) 이미지 생성기 CLI + 웹 UI

@@ -1,4 +1,4 @@
-# ima2-gen fork one-click installer (Windows / PowerShell)
+# ima2-genX one-click installer (Windows / PowerShell)
 #
 # Usage:
 #   irm https://damagethundercat.github.io/ima2-gen/install-windows.ps1 | iex
@@ -43,7 +43,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 Print "$PkgName installed."
 
-Print "Starting ima2-gen fork with $CliName serve..."
+Print "Starting ima2-genX with $CliName serve..."
 Print 'If the browser does not open automatically, visit http://localhost:3333.'
 Write-Host ''
 & $CliName serve

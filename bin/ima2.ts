@@ -16,6 +16,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
 const requireFromRoot = createRequire(join(ROOT, "package.json"));
 const CLI_NAME = "ima2x";
+const PRODUCT_NAME = "ima2-genX";
 // Config lives under runtimeConfig.storage.configDir (honors IMA2_CONFIG_DIR).
 // Legacy installs that stored config at <packageRoot>/.ima2/config.json will be
 // migrated on first write.
@@ -102,7 +103,7 @@ function missingRuntimeDeps() {
 async function setup() {
   const rl = createInterface({ input: process.stdin, output: process.stdout });
 
-  console.log("\n  ima2-gen — GPT Image 2 Generator\n");
+  console.log(`\n  ${PRODUCT_NAME} — GPT Image 2 Studio\n`);
   console.log("  Choose authentication method:\n");
   console.log("    1) API Key  — paste your OpenAI API key (paid)");
   console.log("    2) OAuth    — login with ChatGPT account (free)\n");
@@ -225,7 +226,8 @@ async function serve(serveArgs: string[] = []) {
 
 async function showStatus() {
   const config = loadConfig();
-  console.log(`\n  ${pkg.name} v${pkg.version}\n`);
+  console.log(`\n  ${PRODUCT_NAME} v${pkg.version}\n`);
+  console.log(`  Package: ${pkg.name}`);
   console.log(`  Config file: ${CONFIG_FILE}`);
   console.log(`  Exists: ${existsSync(CONFIG_FILE) ? "yes" : "no"}\n`);
 
@@ -261,7 +263,8 @@ async function showStatus() {
 }
 
 async function doctor() {
-  console.log(`\n  ${pkg.name} v${pkg.version} — Doctor\n`);
+  console.log(`\n  ${PRODUCT_NAME} v${pkg.version} — Doctor\n`);
+  console.log(`  Package: ${pkg.name}\n`);
 
   let ok = 0;
   let fail = 0;
@@ -357,7 +360,7 @@ function openBrowserWhenReady(child: ChildProcess) {
 
 function showHelp() {
   console.log(`
-  ${pkg.name} v${pkg.version} — GPT Image 2 Generator
+  ${PRODUCT_NAME} v${pkg.version} — GPT Image 2 Studio
 
   Usage: ${CLI_NAME} <command> [options]
 

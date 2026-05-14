@@ -736,7 +736,7 @@
       "apiSourceEnv": "OPENAI_API_KEY detected",
       "apiSourceConfig": "config.json API key detected",
       "apiTitle": "API key provider available",
-      "apiBody": "ima2-gen can use this API key for generation, edit, multimode, and node requests through the Responses API.",
+      "apiBody": "ima2-genX can use this API key for generation, edit, multimode, and node requests through the Responses API.",
       "apiDisabled": "Unavailable",
       "apiReady": "Ready",
       "apiUnavailable": "Unavailable",

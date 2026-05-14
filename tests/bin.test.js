@@ -72,7 +72,7 @@ describe("ima2x CLI", () => {
 
   it("should show status", async () => {
     const { stdout } = await runCLI(["status"]);
-    assert.ok(stdout.includes("ima2-gen"), "status should show name");
+    assert.ok(stdout.includes("ima2-genX"), "status should show product name");
     assert.ok(stdout.includes("Config file"), "status should mention config");
   });
 

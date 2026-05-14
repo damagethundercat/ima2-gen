@@ -89,6 +89,7 @@ export function CanvasModeWorkspace(_props: CanvasModeWorkspaceProps) {
   const previousImageKeyRef = useRef<string | null>(null);
   const loadedDraftKeyRef = useRef<string | null>(null);
   const draftSaveTimerRef = useRef<number | null>(null);
+  const wheelTransformTimerRef = useRef<number | null>(null);
   const canvasSourceImageRef = useRef<GenerateItem | null>(null);
   const lastMergedDataUrlRef = useRef<string | null>(null);
   const [canvasVersionItem, setCanvasVersionItem] = useState<GenerateItem | null>(null);
@@ -96,6 +97,7 @@ export function CanvasModeWorkspace(_props: CanvasModeWorkspaceProps) {
   const [isApplying, setIsApplying] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isEditingWithMask, setIsEditingWithMask] = useState(false);
+  const [wheelTransformActive, setWheelTransformActive] = useState(false);
   const annotations = useCanvasAnnotations();
 
   const copyPrompt = () => {
@@ -226,15 +228,32 @@ export function CanvasModeWorkspace(_props: CanvasModeWorkspaceProps) {
     currentImage?.filename,
   ]);
 
+  useEffect(() => {
+    return () => {
+      if (wheelTransformTimerRef.current != null) {
+        window.clearTimeout(wheelTransformTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleViewerMouseDown = (event: MouseEvent<HTMLElement>) => {
     if (isEditableTarget(event.target)) return;
     markGeneratedResultsSeen();
     event.currentTarget.focus();
   };
 
+  const markWheelTransformActive = (): void => {
+    setWheelTransformActive(true);
+    if (wheelTransformTimerRef.current != null) {
+      window.clearTimeout(wheelTransformTimerRef.current);
+    }
+    wheelTransformTimerRef.current = window.setTimeout(() => setWheelTransformActive(false), 140);
+  };
+
   const handleViewerWheel = (event: WheelEvent<HTMLElement>) => {
     if (!canvasOpen) return;
     event.preventDefault();
+    markWheelTransformActive();
     if (event.ctrlKey) {
       setCanvasZoom(canvasZoom - event.deltaY * 0.01);
       return;
@@ -417,7 +436,7 @@ export function CanvasModeWorkspace(_props: CanvasModeWorkspaceProps) {
               transform: canvasOpen
                 ? `translate(${canvasPanX}px, ${canvasPanY}px) scale(${canvasZoom})`
                 : undefined,
-              transition: canvasOpen && !viewportPanActive ? "transform 0.2s ease" : undefined,
+              transition: canvasOpen && !viewportPanActive && !wheelTransformActive ? "transform 0.2s ease" : undefined,
             }}
             imageKey={`${canvasDisplayImage?.filename ?? canvasDisplayImage?.url ?? canvasDisplayImage?.image}:${canvasDisplayImage?.canvasMergedAt ?? ""}`}
             imageSrc={imageSrc ?? currentImage.image}
